@@ -261,15 +261,13 @@ function UpdateUserDialog({
                 <div className="mt-2 grid  grid-cols-2 gap-2">
                   {Object.keys(data).map((key) => {
                     if (data.hasOwnProperty(key)) {
-                      if (key === "id") return null;
+                      if (key === "id" || key === "bank") return null;
                       return (
                         <div key={key} className="flex flex-col">
                           <label
-                            className={`text-sm capitalize text-gray-500 font-semibold ${
-                              key === "bank" && !isValidated ? "hidden" : ""
-                            }`}
+                            className={`text-sm capitalize text-gray-500 font-semibold`}
                           >
-                            {key}{" "}
+                            {key}
                           </label>
                           {key === "dp" && (
                             <select
@@ -288,29 +286,6 @@ function UpdateUserDialog({
                                 return (
                                   <option key={capital.id} value={capital.id}>
                                     {capital.name} ({capital.code})
-                                  </option>
-                                );
-                              })}
-                            </select>
-                          )}
-
-                          {key == "bank" && isValidated && (
-                            <select
-                              onChange={(e) =>
-                                updateUser(key as keyof User, e.target.value)
-                              }
-                              required={true}
-                              //@ts-ignore
-                              value={data[key as keyof User]}
-                              className="outline-none border-2 border-gray-300 focus:border-gray-400 ease-out transition-all mt-[2px] rounded-lg p-1 text-gray-600 text-xs"
-                            >
-                              <option value="" disabled={true}>
-                                Select Bank
-                              </option>
-                              {userDetails.banks.map((bank) => {
-                                return (
-                                  <option key={bank.id} value={bank.id}>
-                                    {bank.name}
                                   </option>
                                 );
                               })}
@@ -337,6 +312,32 @@ function UpdateUserDialog({
                     }
                     return null;
                   })}
+                  {isValidated && (
+                    <div className="flex flex-col">
+                      <label
+                        className={`text-sm capitalize text-gray-500 font-semibold`}
+                      >
+                        Bank
+                      </label>
+                      <select
+                        onChange={(e) => updateUser("bank", e.target.value)}
+                        required={true}
+                        value={data["bank"]}
+                        className="outline-none border-2 border-gray-300 focus:border-gray-400 ease-out transition-all mt-[2px] rounded-lg p-1 text-gray-600 text-xs"
+                      >
+                        <option value="" disabled={true}>
+                          Select Bank
+                        </option>
+                        {userDetails.banks.map((bank) => {
+                          return (
+                            <option key={bank.id} value={bank.id}>
+                              {bank.name}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-4 flex justify-end gap-2">
