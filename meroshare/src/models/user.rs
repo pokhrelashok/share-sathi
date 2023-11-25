@@ -7,6 +7,7 @@ fn default_tag() -> Vec<String> {
 }
 #[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct User {
+    pub id: String,
     pub dp: String,
     pub username: String,
     pub password: String,

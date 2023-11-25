@@ -12,8 +12,7 @@ type User = {
   crn: string;
   pin: string;
   name: string;
-  asbaBankIndex?: number;
-  tags: string[];
+  id: string | null;
 };
 
 function ManageUsers() {
@@ -39,11 +38,17 @@ function ManageUsers() {
   function handleUpdate(data: User) {
     if (currentUserIndex === null) return;
     const updatedData = [...(users || [])];
-    updatedData[currentUserIndex] = data;
+    if (data.id) updatedData[currentUserIndex] = data;
+    else {
+      updatedData.unshift({
+        ...data,
+        id: Math.random().toString(36).slice(2, 7),
+      });
+    }
     updateUser({ data: JSON.stringify(updatedData) }).then(() => {
       setUser(null);
       getUsers();
-      toast("User updated!");
+      toast(`User ${data.id ? "updated" : "created"}!`);
     });
   }
 
@@ -60,7 +65,27 @@ function ManageUsers() {
   return (
     <>
       <div className="flex flex-col gap-2 p-3 max-w-md mx-auto">
-        <h2 className="text-3xl font-bold my-5 text-center">Manage Users</h2>
+        <div className="my-4 flex justify-between items-center">
+          <h2 className="text-3xl font-bold">Manage Users</h2>
+          <button
+            disabled={loading}
+            type="button"
+            className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            onClick={(e) => {
+              setUser({
+                id: null,
+                dp: "",
+                username: "",
+                password: "",
+                crn: "",
+                pin: "",
+                name: "",
+              });
+            }}
+          >
+            Create
+          </button>
+        </div>
         {loading && <SectionLoading />}
         {users?.map((user, index) => {
           return (
@@ -79,6 +104,9 @@ function ManageUsers() {
             </div>
           );
         })}
+        {!loading && users?.length === 0 && (
+          <div className="text-center">No users yet!</div>
+        )}
       </div>
       {user !== null && (
         <UpdateUserDialog
@@ -133,7 +161,13 @@ function UpdateUserDialog({
           <div className="fixed inset-0 bg-black/25" />
         </Transition.Child>
 
-        <div className="fixed inset-0 overflow-y-auto">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleUpdate(data);
+          }}
+          className="fixed inset-0 overflow-y-auto"
+        >
           <div className="flex min-h-full items-center justify-center p-4 text-center">
             <Transition.Child
               as={Fragment}
@@ -149,23 +183,31 @@ function UpdateUserDialog({
                   as="h3"
                   className="text-lg font-bold leading-6 text-gray-600"
                 >
-                  Update User: {user.name}
+                  {user.id ? "Update" : "Create"} User
                 </Dialog.Title>
                 <div className="mt-2 grid  grid-cols-2 gap-2">
                   {Object.keys(data).map((key) => {
                     if (data.hasOwnProperty(key)) {
+                      if (key === "id") return null;
                       return (
                         <div key={key} className="flex flex-col">
-                          <label className="text-sm uppercase text-gray-500 font-semibold">
+                          <label className="text-sm capitalize text-gray-500 font-semibold">
                             {key}{" "}
                           </label>
                           <input
+                            type={
+                              key === "username" || key === "pin"
+                                ? "number"
+                                : "text"
+                            }
                             onChange={(e) => {
                               const updated = { ...data };
                               //@ts-ignore
                               updated[key as keyof User] = e.target.value;
                               setData(updated);
                             }}
+                            required={true}
+                            //@ts-ignore
                             value={data[key as keyof User]}
                             className="outline-none border-2 border-gray-300 focus:border-gray-400 ease-out transition-all mt-[2px] rounded-lg p-1 text-gray-600"
                           />
@@ -177,30 +219,29 @@ function UpdateUserDialog({
                 </div>
 
                 <div className="mt-4 flex justify-end gap-2">
-                  <button
-                    type="button"
-                    className="inline-flex justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
-                    onClick={(e) => {
-                      handleDelete();
-                    }}
-                  >
-                    Delete
-                  </button>
+                  {user.id && (
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                      onClick={(e) => {
+                        handleDelete();
+                      }}
+                    >
+                      Delete
+                    </button>
+                  )}
                   <button
                     disabled={loading}
-                    type="button"
+                    type="submit"
                     className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                    onClick={(e) => {
-                      handleUpdate(data);
-                    }}
                   >
-                    Update
+                    {user.id ? "Update" : "Create"}
                   </button>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
           </div>
-        </div>
+        </form>
       </Dialog>
     </Transition>
   );
