@@ -1,0 +1,13 @@
+[package]
+name = "meroshare"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = {version="0.11.17",features = ["blocking", "json"]}
+serde = {version="1.0.162",features = ["derive"]}
+serde_json = "1.0.96"
+prettytable-rs = "^0.10"
+tokio = { version = "1.28.1", features = ["full"] }
+thousands = "0.2.0"
+lazy_static = "1.4.0"
