@@ -2,6 +2,7 @@
 import useInvoke from "@/hooks/useInvoke";
 import SectionLoading from "../_components/SectionLoading";
 import { useEffect } from "react";
+import Wrapper from "../_components/Wrapper";
 
 export type Company = {
   companyName: string;
@@ -52,8 +53,7 @@ export default function OpenShares() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-2 p-3 max-w-md mx-auto">
-      <h2 className="text-3xl font-bold my-5 text-center">Open Shares</h2>
+    <Wrapper showBack={true} title="Open Shares">
       {isFetchingShares && <SectionLoading />}
       {shares?.map((share) => {
         return (
@@ -93,6 +93,6 @@ export default function OpenShares() {
         {!isFetchingProspectus && error && <div>{JSON.stringify(error)}</div>}
         {isFetchingProspectus && <SectionLoading />}
       </div>
-    </div>
+    </Wrapper>
   );
 }

@@ -1,33 +1,12 @@
 "use client";
 import useInvoke from "@/hooks/useInvoke";
-import {
-  ChangeEventHandler,
-  Fragment,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import SectionLoading from "../_components/SectionLoading";
 import { Dialog, Transition } from "@headlessui/react";
 import toast from "react-hot-toast";
-import BackIcon from "../_components/BackIcon";
-
-export type User = {
-  dp: string;
-  username: string;
-  password: string;
-  crn: string;
-  pin: string;
-  name: string;
-  id: string | null;
-  bank: string;
-};
-
-export type Capital = {
-  id: string;
-  name: string;
-  code: string;
-};
+import Wrapper from "../_components/Wrapper";
+import Button from "../_components/Button";
+import { Capital, User } from "../_components/Models";
 
 type UserDetails = {
   details: User;
@@ -58,6 +37,7 @@ function ManageUsers() {
     if (user?.id) {
       validateUser(user);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   async function handleUpdate(data: User) {
@@ -105,60 +85,54 @@ function ManageUsers() {
   }
 
   return (
-    <>
-      <div className="flex flex-col gap-2 p-3 max-w-md mx-auto">
-        <div className="my-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <BackIcon />
-            <h2 className="text-3xl font-bold">
-              <span>Manage Users</span>
-            </h2>
-          </div>
-          <button
-            disabled={loading}
-            type="button"
-            className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-            onClick={(e) => {
-              setUser({
-                id: "",
-                dp: "",
-                username: "",
-                password: "",
-                crn: "",
-                pin: "",
-                name: "",
-                bank: "",
-              });
-            }}
+    <Wrapper
+      showBack={true}
+      action={
+        <Button
+          disabled={loading}
+          type="button"
+          onClick={() => {
+            setUser({
+              id: "",
+              dp: "",
+              username: "",
+              password: "",
+              crn: "",
+              pin: "",
+              name: "",
+              bank: "",
+            });
+          }}
+        >
+          Create
+        </Button>
+      }
+      title="Manage Users"
+    >
+      {loading || (!firstFetchDone && <SectionLoading />)}
+      {users?.map((user, index) => {
+        return (
+          <div
+            key={user.username}
+            className=" bg-zinc-200 p-2 px-3 rounded-md flex cursor-pointer items-center justify-between"
           >
-            Create
-          </button>
-        </div>
-        {loading || (!firstFetchDone && <SectionLoading />)}
-        {users?.map((user, index) => {
-          return (
-            <div
-              key={user.username}
-              className=" bg-zinc-200 p-2 px-3 rounded-md flex cursor-pointer items-center justify-between"
-            >
-              <div className="flex gap-2">
-                <span className="font-bold">{user.name}</span>
-              </div>
-              <div className="flex gap-1">
-                <button onClick={() => setUser(user)}>
-                  <img height={36} width={36} src="/edit-icon.svg" />
-                </button>
-                <button onClick={() => handleDelete(index)}>
-                  <img height={30} width={30} src="/delete-icon.svg" />
-                </button>
-              </div>
+            <div className="flex gap-2">
+              <span className="font-bold">{user.name}</span>
             </div>
-          );
-        })}
-        {!loading && firstFetchDone && users?.length === 0 && (
-          <div className="text-center">No users yet!</div>
-        )}
-      </div>
+            <div className="flex gap-1">
+              <button onClick={() => setUser(user)}>
+                <img height={36} width={36} src="/edit-icon.svg" />
+              </button>
+              <button onClick={() => handleDelete(index)}>
+                <img height={30} width={30} src="/delete-icon.svg" />
+              </button>
+            </div>
+          </div>
+        );
+      })}
+      {!loading && firstFetchDone && users?.length === 0 && (
+        <div className="text-center">No users yet!</div>
+      )}
       {user !== null && (
         <UpdateUserDialog
           onChange={(key) => {
@@ -181,7 +155,7 @@ function ManageUsers() {
           }}
         />
       )}
-    </>
+    </Wrapper>
   );
 }
 
@@ -342,23 +316,19 @@ function UpdateUserDialog({
 
                 <div className="mt-4 flex justify-end gap-2">
                   {user.id && (
-                    <button
+                    <Button
                       type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
-                      onClick={(e) => {
+                      color="red"
+                      onClick={() => {
                         handleDelete();
                       }}
                     >
                       Delete
-                    </button>
+                    </Button>
                   )}
-                  <button
-                    disabled={loading}
-                    type="submit"
-                    className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                  >
+                  <Button disabled={loading} loading={loading} type="submit">
                     {!isValidated ? "Validate" : user.id ? "Update" : "Create"}
-                  </button>
+                  </Button>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
