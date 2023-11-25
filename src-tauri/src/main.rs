@@ -1,7 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use meroshare::{Company, IPOAppliedResult, Prospectus, User};
+use controller::UserDetailWithBank;
+use meroshare::{Capital, Company, IPOAppliedResult, Prospectus, User};
 
 #[derive(Default)]
 struct MyState {}
@@ -39,6 +40,18 @@ async fn update_user(data: String) -> bool {
     let res = controller.update_user(data);
     return res;
 }
+#[tauri::command]
+async fn get_capitals() -> Result<Vec<Capital>, &'static str> {
+    let controller = controller::Controller::new();
+    let res = controller.get_capitals().await;
+    return res;
+}
+#[tauri::command]
+async fn get_user_details(user: User) -> Result<UserDetailWithBank, &'static str> {
+    let mut controller = controller::Controller::new();
+    let res = controller.get_user_details(user).await;
+    return res;
+}
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -46,7 +59,9 @@ fn main() {
             get_company_prospectus,
             apply_share,
             get_users,
-            update_user
+            update_user,
+            get_capitals,
+            get_user_details
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

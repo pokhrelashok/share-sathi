@@ -1,11 +1,18 @@
 "use client";
 import useInvoke from "@/hooks/useInvoke";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import {
+  ChangeEventHandler,
+  Fragment,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import SectionLoading from "../_components/SectionLoading";
 import { Dialog, Transition } from "@headlessui/react";
 import toast from "react-hot-toast";
+import BackIcon from "../_components/BackIcon";
 
-type User = {
+export type User = {
   dp: string;
   username: string;
   password: string;
@@ -13,6 +20,18 @@ type User = {
   pin: string;
   name: string;
   id: string | null;
+  bank: string;
+};
+
+export type Capital = {
+  id: string;
+  name: string;
+  code: string;
+};
+
+type UserDetails = {
+  details: User;
+  banks: Capital[];
 };
 
 function ManageUsers() {
@@ -20,10 +39,15 @@ function ManageUsers() {
     data: users,
     loading,
     handle: getUsers,
-  } = useInvoke<User[]>("get_users");
+    firstFetchDone,
+  } = useInvoke<User[]>("get_users", [], true);
+
   const { handle: updateUser, loading: updating } = useInvoke("update_user");
+  const { data: capitals } = useInvoke<Capital[]>("get_capitals", [], true);
+  const { handle: getUserDetails } = useInvoke<UserDetails>("get_user_details");
 
   const [user, setUser] = useState<User | null>(null);
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
 
   const currentUserIndex = useMemo(() => {
     if (!user || !users) return null;
@@ -31,14 +55,19 @@ function ManageUsers() {
   }, [users, user]);
 
   useEffect(() => {
-    getUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (user?.id) {
+      validateUser(user);
+    }
+  }, [user]);
 
-  function handleUpdate(data: User) {
-    if (currentUserIndex === null) return;
+  async function handleUpdate(data: User) {
+    if (!userDetails) {
+      validateUser(data);
+      return;
+    }
     const updatedData = [...(users || [])];
-    if (data.id) updatedData[currentUserIndex] = data;
+    if (data.id && currentUserIndex !== null)
+      updatedData[currentUserIndex] = data;
     else {
       updatedData.unshift({
         ...data,
@@ -50,6 +79,19 @@ function ManageUsers() {
       getUsers();
       toast(`User ${data.id ? "updated" : "created"}!`);
     });
+  }
+
+  async function validateUser(data: User) {
+    try {
+      const userDetails = await getUserDetails({ user: data });
+      setUserDetails(userDetails);
+      return true;
+    } catch (e) {
+      if (!userDetails) {
+        toast("The credentials are not valid!");
+        return false;
+      }
+    }
   }
 
   function handleDelete(index: number) {
@@ -66,56 +108,72 @@ function ManageUsers() {
     <>
       <div className="flex flex-col gap-2 p-3 max-w-md mx-auto">
         <div className="my-4 flex justify-between items-center">
-          <h2 className="text-3xl font-bold">Manage Users</h2>
+          <div className="flex items-center gap-2">
+            <BackIcon />
+            <h2 className="text-3xl font-bold">
+              <span>Manage Users</span>
+            </h2>
+          </div>
           <button
             disabled={loading}
             type="button"
             className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             onClick={(e) => {
               setUser({
-                id: null,
+                id: "",
                 dp: "",
                 username: "",
                 password: "",
                 crn: "",
                 pin: "",
                 name: "",
+                bank: "",
               });
             }}
           >
             Create
           </button>
         </div>
-        {loading && <SectionLoading />}
+        {loading || (!firstFetchDone && <SectionLoading />)}
         {users?.map((user, index) => {
           return (
             <div
               key={user.username}
-              className=" bg-zinc-200 p-2 rounded-md flex cursor-pointer justify-between"
+              className=" bg-zinc-200 p-2 px-3 rounded-md flex cursor-pointer items-center justify-between"
             >
               <div className="flex gap-2">
                 <span className="font-bold">{user.name}</span>
-                <span>{user.dp}</span>
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => setUser(user)}>Update</button>
-                <button onClick={() => handleDelete(index)}>Delete</button>
+              <div className="flex gap-1">
+                <button onClick={() => setUser(user)}>
+                  <img height={36} width={36} src="/edit-icon.svg" />
+                </button>
+                <button onClick={() => handleDelete(index)}>
+                  <img height={30} width={30} src="/delete-icon.svg" />
+                </button>
               </div>
             </div>
           );
         })}
-        {!loading && users?.length === 0 && (
+        {!loading && firstFetchDone && users?.length === 0 && (
           <div className="text-center">No users yet!</div>
         )}
       </div>
       {user !== null && (
         <UpdateUserDialog
+          onChange={(key) => {
+            if (!(key == "dp" || key == "username" || key == "password"))
+              return;
+            setUserDetails(null);
+          }}
           onClose={() => {
             setUser(null);
           }}
           loading={updating}
+          capitals={capitals}
           user={user}
           handleUpdate={handleUpdate}
+          userDetails={userDetails}
           handleDelete={() => {
             if (currentUserIndex !== null) {
               handleDelete(currentUserIndex);
@@ -133,18 +191,33 @@ function UpdateUserDialog({
   handleDelete,
   handleUpdate,
   loading,
+  capitals,
+  onChange,
+  userDetails,
 }: {
+  userDetails: UserDetails | null;
+  capitals: Capital[];
   user: User;
   onClose: () => any;
   handleUpdate: (data: User) => any;
   handleDelete: () => any;
+  onChange: (key: keyof User) => any;
   loading: boolean;
 }) {
   const [data, setData] = useState<User>(() => ({ ...user }));
+  const isValidated = userDetails !== null;
   useEffect(() => {
     setData({ ...user });
   }, [user]);
+
   const isOpen = user !== null;
+
+  function updateUser(key: keyof User, value: string) {
+    const updated = { ...data };
+    updated[key] = value;
+    setData(updated);
+    onChange(key);
+  }
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -191,30 +264,78 @@ function UpdateUserDialog({
                       if (key === "id") return null;
                       return (
                         <div key={key} className="flex flex-col">
-                          <label className="text-sm capitalize text-gray-500 font-semibold">
+                          <label
+                            className={`text-sm capitalize text-gray-500 font-semibold ${
+                              key === "bank" && !isValidated ? "hidden" : ""
+                            }`}
+                          >
                             {key}{" "}
                           </label>
-                          <input
-                            type={
-                              key === "username" || key === "pin"
-                                ? "number"
-                                : "text"
-                            }
-                            onChange={(e) => {
-                              const updated = { ...data };
+                          {key === "dp" && (
+                            <select
+                              onChange={(e) =>
+                                updateUser(key as keyof User, e.target.value)
+                              }
+                              required={true}
                               //@ts-ignore
-                              updated[key as keyof User] = e.target.value;
-                              setData(updated);
-                            }}
-                            required={true}
-                            //@ts-ignore
-                            value={data[key as keyof User]}
-                            className="outline-none border-2 border-gray-300 focus:border-gray-400 ease-out transition-all mt-[2px] rounded-lg p-1 text-gray-600"
-                          />
+                              value={data[key as keyof User]}
+                              className="outline-none border-2 border-gray-300 focus:border-gray-400 ease-out transition-all mt-[2px] rounded-lg p-1 text-gray-600 text-xs"
+                            >
+                              <option value="" disabled={true}>
+                                Select capital
+                              </option>
+                              {capitals.map((capital) => {
+                                return (
+                                  <option key={capital.id} value={capital.id}>
+                                    {capital.name} ({capital.code})
+                                  </option>
+                                );
+                              })}
+                            </select>
+                          )}
+
+                          {key == "bank" && isValidated && (
+                            <select
+                              onChange={(e) =>
+                                updateUser(key as keyof User, e.target.value)
+                              }
+                              required={true}
+                              //@ts-ignore
+                              value={data[key as keyof User]}
+                              className="outline-none border-2 border-gray-300 focus:border-gray-400 ease-out transition-all mt-[2px] rounded-lg p-1 text-gray-600 text-xs"
+                            >
+                              <option value="" disabled={true}>
+                                Select Bank
+                              </option>
+                              {userDetails.banks.map((bank) => {
+                                return (
+                                  <option key={bank.id} value={bank.id}>
+                                    {bank.name}
+                                  </option>
+                                );
+                              })}
+                            </select>
+                          )}
+                          {key !== "dp" && key !== "bank" && (
+                            <input
+                              type={
+                                key === "username" || key === "pin"
+                                  ? "number"
+                                  : "text"
+                              }
+                              onChange={(e) =>
+                                updateUser(key as keyof User, e.target.value)
+                              }
+                              required={true}
+                              //@ts-ignore
+                              value={data[key as keyof User]}
+                              className="outline-none border-2 border-gray-300 focus:border-gray-400 ease-out transition-all mt-[2px] rounded-lg p-1 text-gray-600"
+                            />
+                          )}
                         </div>
                       );
                     }
-                    return <></>;
+                    return null;
                   })}
                 </div>
 
@@ -235,7 +356,7 @@ function UpdateUserDialog({
                     type="submit"
                     className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                   >
-                    {user.id ? "Update" : "Create"}
+                    {!isValidated ? "Validate" : user.id ? "Update" : "Create"}
                   </button>
                 </div>
               </Dialog.Panel>

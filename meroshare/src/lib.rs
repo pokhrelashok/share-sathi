@@ -57,29 +57,20 @@ impl Meroshare {
             tokens: Mutex::new(HashMap::new()),
         }
     }
-    async fn get_auth_header(
+    pub async fn get_auth_header(
         &mut self,
         user: &User,
     ) -> Result<HashMap<String, String>, &'static str> {
         let mut token = String::from("");
         let mut token_guard = self.tokens.lock().await;
-        let mut capital_guard = self.capitals.lock().await;
+        // let mut capital_guard = self.capitals.lock().await;
         match token_guard.get(&user.username) {
             Some(t) => {
                 token = t.clone();
             }
             None => {
-                if capital_guard.len() == 0 {
-                    let mut fetched_capitals = self.get_capitals().await.unwrap();
-                    capital_guard.append(&mut fetched_capitals);
-                }
-                let dp_id = capital_guard
-                    .iter()
-                    .find(|&r| r.code == user.dp)
-                    .unwrap()
-                    .id;
                 let body = json!({
-                    "clientId":dp_id,
+                    "clientId":user.dp,
                     "username":user.username,
                     "password":user.password,
                 });
@@ -111,7 +102,7 @@ impl Meroshare {
         Ok(headers)
     }
 
-    async fn get_capitals(&self) -> Result<Vec<Capital>, Error> {
+    pub async fn get_capitals(&self) -> Result<Vec<Capital>, Error> {
         let url = MERO_SHARE_URL.to_string() + "capital/";
         let result = make_request(&url, Method::GET, None, None).await;
         match result {
@@ -125,22 +116,27 @@ impl Meroshare {
 
     #[allow(dead_code)]
 
-    pub async fn get_user_banks(&mut self, user: &User) -> Result<Vec<Bank>, Error> {
-        let headers = self.get_auth_header(user).await.unwrap();
-        let url = MERO_SHARE_URL.to_string() + "bank/";
-        let result = make_request(&url, Method::GET, None, Some(headers)).await;
-        match result {
-            Ok(value) => {
-                let banks: Vec<Bank> = value.json().await?;
-                Ok(banks)
+    pub async fn get_user_banks(&mut self, user: &User) -> Result<Vec<Bank>, &'static str> {
+        // let headers = .unwrap();
+        match self.get_auth_header(user).await {
+            Ok(headers) => {
+                let url = MERO_SHARE_URL.to_string() + "bank/";
+                let result = make_request(&url, Method::GET, None, Some(headers)).await;
+                match result {
+                    Ok(value) => {
+                        let banks: Vec<Bank> = value.json().await.unwrap();
+                        Ok(banks)
+                    }
+                    Err(_) => Err("Something went wrong"),
+                }
             }
-            Err(error) => Err(error),
+            Err(e) => Err(e),
         }
     }
 
-    pub async fn get_bank_details(&mut self, id: u32, user: &User) -> Result<BankDetails, Error> {
+    pub async fn get_bank_details(&mut self, id: &str, user: &User) -> Result<BankDetails, Error> {
         let headers = self.get_auth_header(user).await.unwrap();
-        let url = MERO_SHARE_URL.to_string() + "bank/" + id.to_string().as_str();
+        let url = MERO_SHARE_URL.to_string() + "bank/" + id;
         let result = make_request(&url, Method::GET, None, Some(headers)).await;
         match result {
             Ok(value) => {
@@ -150,16 +146,20 @@ impl Meroshare {
             Err(error) => Err(error),
         }
     }
-    pub async fn get_user_details(&mut self, user: &User) -> Result<UserDetails, Error> {
-        let headers = self.get_auth_header(user).await.unwrap();
-        let url = MERO_SHARE_URL.to_string() + "ownDetail/";
-        let result = make_request(&url, Method::GET, None, Some(headers)).await;
-        match result {
-            Ok(value) => {
-                let user: UserDetails = value.json().await?;
-                Ok(user)
+    pub async fn get_user_details(&mut self, user: &User) -> Result<UserDetails, &'static str> {
+        match self.get_auth_header(user).await {
+            Ok(headers) => {
+                let url = MERO_SHARE_URL.to_string() + "ownDetail/";
+                let result = make_request(&url, Method::GET, None, Some(headers)).await;
+                match result {
+                    Ok(value) => {
+                        let user: UserDetails = value.json().await.unwrap();
+                        Ok(user)
+                    }
+                    Err(_) => Err("something went wrong"),
+                }
             }
-            Err(error) => Err(error),
+            Err(e) => Err(e),
         }
     }
 
@@ -347,19 +347,20 @@ impl Meroshare {
         &mut self,
         user: &User,
         id: i32,
-        min_unit: i32,
+        units: i32,
     ) -> Result<IPOAppliedResult, Error> {
         let headers = self.get_auth_header(user).await.unwrap();
-        let banks = self.get_user_banks(user).await.unwrap();
-        let bank = banks.get(user.bank_index - 1).unwrap();
-        let bank_details = self.get_bank_details(bank.id, user).await.unwrap();
+        let bank_details = self
+            .get_bank_details(user.bank.as_str(), user)
+            .await
+            .unwrap();
         let user_details = self.get_user_details(user).await.unwrap();
         let url = MERO_SHARE_URL.to_string() + "applicantForm/share/apply/";
         let body = json!({
             "accountBranchId":bank_details.account_branch_id,
             "accountNumber":bank_details.account_number,
-            "appliedKitta":min_unit,
-            "bankId":bank.id,
+            "appliedKitta":units,
+            "bankId":user.bank,
             "boid":user_details.boid,
             "companyShareId":id,
             "crnNumber":user.crn,

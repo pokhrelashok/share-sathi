@@ -1,7 +1,4 @@
 use serde::{Deserialize, Serialize};
-fn default_bank_index() -> usize {
-    1
-}
 fn default_tag() -> Vec<String> {
     vec![]
 }
@@ -14,13 +11,12 @@ pub struct User {
     pub crn: String,
     pub pin: String,
     pub name: String,
-    #[serde(rename = "asbaBankIndex", default = "default_bank_index")]
-    pub bank_index: usize,
-    #[serde(default = "default_tag")]
-    pub tags: Vec<String>,
+    pub bank: String,
+    // #[serde(default = "default_tag")]
+    // pub tags: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct UserDetails {
     pub address: String,
     pub boid: String,

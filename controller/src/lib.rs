@@ -1,12 +1,20 @@
 extern crate prettytable;
 
-use meroshare::user::User;
-use meroshare::{Company, IPOAppliedResult, Meroshare, Prospectus};
+use meroshare::user::{User, UserDetails};
+use meroshare::{Bank, Capital, Company, IPOAppliedResult, Meroshare, Prospectus};
+use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
 use std::io::Read;
 use std::io::Write;
+
 pub struct Controller {
     meroshare: Meroshare,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct UserDetailWithBank {
+    details: UserDetails,
+    banks: Vec<Bank>,
 }
 
 impl Controller {
@@ -37,6 +45,29 @@ impl Controller {
         file.set_len(0).unwrap();
         file.write_all(data.as_bytes()).unwrap();
         true
+    }
+
+    pub async fn get_user_details(
+        &mut self,
+        user: User,
+    ) -> Result<UserDetailWithBank, &'static str> {
+        match self.meroshare.get_user_details(&user).await {
+            Ok(details) => {
+                let banks = self.meroshare.get_user_banks(&user).await.unwrap();
+                Ok(UserDetailWithBank {
+                    details: details,
+                    banks: banks,
+                })
+            }
+            Err(_) => Err("Invalid credentials"),
+        }
+    }
+
+    pub async fn get_capitals(&self) -> Result<Vec<Capital>, &'static str> {
+        match self.meroshare.get_capitals().await {
+            Ok(banks) => Ok(banks),
+            Err(_) => Err("Something went wrong!"),
+        }
     }
 
     pub async fn list_open_shares(&mut self) -> Result<Vec<Company>, &str> {
