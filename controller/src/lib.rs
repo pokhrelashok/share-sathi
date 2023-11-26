@@ -2,7 +2,8 @@ extern crate prettytable;
 
 use meroshare::user::{User, UserDetails};
 use meroshare::{
-    Bank, Capital, Company, CompanyApplication, IPOAppliedResult, IPOResult, Meroshare, Prospectus,
+    Bank, Capital, Company, CompanyApplication, IPOAppliedResult, IPOResult, Meroshare, Portfolio,
+    Prospectus,
 };
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
@@ -123,5 +124,22 @@ impl Controller {
             });
         }
         return results;
+    }
+
+    pub async fn get_user_portfolio<'a>(&mut self, id: String) -> Portfolio {
+        let users: Vec<User> = self.get_users().unwrap();
+        let user = users
+            .iter()
+            .find(|&user| user.id == id)
+            .expect("Invalid id");
+        match self.meroshare.get_portfolio(user).await {
+            Ok(items) => items,
+            Err(_) => Portfolio {
+                total_items: 0.0,
+                total_value_of_last_trans_price: 0.0,
+                total_value_of_prev_closing_price: 0.0,
+                items: vec![],
+            },
+        }
     }
 }

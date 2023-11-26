@@ -1,10 +1,10 @@
 use prettytable::{color, Attr, Cell, Row, Table};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use thousands::Separable;
 
 use crate::{currency::CURR_FORMAT, user::User};
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct Portfolio {
     #[serde(rename = "totalItems")]
     pub total_items: f32,
@@ -106,7 +106,7 @@ impl Portfolio {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct PortfolioItem {
     #[serde(rename = "currentBalance")]
     pub current_balance: f32,

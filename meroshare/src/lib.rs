@@ -271,7 +271,7 @@ impl Meroshare {
                 let user_details = self.get_user_details(&user).await.unwrap();
                 let url = PORTFOLIO_URL.to_string() + "myPortfolio";
                 let body = json!({
-                    "clientCode":user.dp,
+                    "clientCode":user.dpcode,
                     "demat":[user_details.demat],
                     "page":1,
                     "size":500,

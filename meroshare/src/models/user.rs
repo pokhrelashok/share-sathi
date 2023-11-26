@@ -10,8 +10,14 @@ pub struct User {
     pub pin: String,
     pub name: String,
     pub bank: String,
+    #[serde(default = "default_dpcode")]
+    pub dpcode: String,
     // #[serde(default = "default_tag")]
     // pub tags: Vec<String>,
+}
+
+fn default_dpcode() -> String {
+    "".to_string()
 }
 
 #[derive(Debug, Deserialize, Clone, Serialize)]

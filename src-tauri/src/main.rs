@@ -4,7 +4,7 @@
 use controller::{Controller, UserDetailWithBank};
 use lazy_static::lazy_static;
 use meroshare::{
-    Capital, Company, CompanyApplication, IPOAppliedResult, IPOResult, Prospectus, User,
+    Capital, Company, CompanyApplication, IPOAppliedResult, IPOResult, Portfolio, Prospectus, User,
 };
 use std::sync::Arc;
 use tokio::sync::Mutex as AsyncMutex;
@@ -79,6 +79,13 @@ async fn get_share_results(script: String) -> Vec<IPOResult> {
     let res = controller_lock.get_results(script).await;
     return res;
 }
+#[tauri::command]
+async fn get_user_portfolio(id: String) -> Portfolio {
+    let controller = CONTROLLER.clone();
+    let mut controller_lock = controller.lock().await;
+    let res = controller_lock.get_user_portfolio(id).await;
+    return res;
+}
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -90,7 +97,8 @@ fn main() {
             get_capitals,
             get_user_details,
             get_application_report,
-            get_share_results
+            get_share_results,
+            get_user_portfolio
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

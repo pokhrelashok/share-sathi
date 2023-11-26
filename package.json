@@ -11,7 +11,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7.17",
     "@tauri-apps/api": "^1.5.1",
-    "next": "14.0.3",
+    "next": "13.4.19",
     "react": "^18",
     "react-dom": "^18",
     "react-hot-toast": "^2.4.1"

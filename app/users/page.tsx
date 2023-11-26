@@ -13,7 +13,7 @@ type UserDetails = {
   banks: Capital[];
 };
 
-const HIDDEN_FIELDS = ["id", "name", "bank"];
+const HIDDEN_FIELDS = ["id", "name", "bank", "dpcode"];
 
 function ManageUsers() {
   const {
@@ -37,36 +37,40 @@ function ManageUsers() {
 
   useEffect(() => {
     if (user?.id) {
-      validateUser(user);
+      validateUser(user, true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   async function handleUpdate(data: User) {
     if (!userDetails) {
-      validateUser(data);
+      validateUser(data, false);
       return;
     }
-    const updatedData = [...(users || [])];
+    const updatedUser = {
+      ...data,
+      dpcode: capitals.find((c) => c.id == data.dp)?.code || "",
+    };
+    const updatedUsers = [...(users || [])];
     if (data.id && currentUserIndex !== null)
-      updatedData[currentUserIndex] = data;
+      updatedUsers[currentUserIndex] = updatedUser;
     else {
-      updatedData.unshift({
-        ...data,
+      updatedUsers.unshift({
+        ...updatedUser,
         id: Math.random().toString(36).slice(2, 7),
         name: userDetails.details.name,
       });
     }
-    updateUser({ data: JSON.stringify(updatedData) }).then(() => {
+    updateUser({ data: JSON.stringify(updatedUsers) }).then(() => {
       setUser(null);
       getUsers();
       toast(`User ${data.id ? "updated" : "created"}!`);
     });
   }
 
-  async function validateUser(data: User) {
-    if (users.find((u) => u.username == data?.username)) {
-      toast("User already exists!");
+  async function validateUser(data: User, silent = true) {
+    if (!user?.id && users.find((u) => u.username == data?.username)) {
+      if (!silent) toast("User already exists!");
       return false;
     }
     try {
@@ -106,6 +110,7 @@ function ManageUsers() {
               pin: "",
               name: "",
               bank: "",
+              dpcode: "",
             });
           }}
         >
@@ -117,21 +122,19 @@ function ManageUsers() {
       {loading || (!firstFetchDone && <SectionLoading />)}
       {users?.map((user, index) => {
         return (
-          <Button key={user.username} className="justify-between">
+          <Button
+            href={`/users/${user.id}`}
+            key={user.username}
+            className="justify-between"
+          >
             <div className="font-semibold">{user.name}</div>
             <div className="flex gap-1 items-center">
-              <a
-                href={`/portfolio/${user.id}?username=${encodeURIComponent(
-                  user.username
-                )}&password=${encodeURIComponent(user.password)}`}
-              >
-                <img
-                  title="View User Details"
-                  height={30}
-                  width={30}
-                  src="/eye-icon.svg"
-                />
-              </a>
+              <img
+                title="View User Details"
+                height={30}
+                width={30}
+                src="/eye-icon.svg"
+              />
               <button onClick={() => setUser(user)}>
                 <img
                   title="Edit User"
@@ -273,12 +276,12 @@ function UpdateUserDialog({
                           </label>
                           {key === "dp" && (
                             <select
-                              onChange={(e) =>
-                                updateUser(key as keyof User, e.target.value)
-                              }
+                              onChange={(e) => {
+                                updateUser("dp", e.target.value);
+                              }}
                               required={true}
                               //@ts-ignore
-                              value={data[key as keyof User]}
+                              value={data["dp"]}
                               className="outline-none border-2 border-gray-300 focus:border-gray-400 ease-out transition-all mt-[2px] rounded-lg p-1 text-gray-600 text-xs"
                             >
                               <option value="" disabled={true}>
@@ -300,7 +303,7 @@ function UpdateUserDialog({
                                 })}
                             </select>
                           )}
-                          {key !== "dp" && key !== "bank" && (
+                          {key !== "dp" && (
                             <input
                               type={
                                 key === "username" || key === "pin"

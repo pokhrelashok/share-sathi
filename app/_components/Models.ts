@@ -1,5 +1,6 @@
 export type User = {
   dp: string;
+  dpcode: string;
   username: string;
   password: string;
   crn: string;
@@ -59,4 +60,22 @@ export type Prospectus = {
 export type IpoResult = {
   status: string;
   user: string;
+};
+
+export type Portfolio = {
+  totalItems: number;
+  totalValueOfLastTransPrice: number;
+  totalValueOfPrevClosingPrice: number;
+  meroShareMyPortfolio: PortfolioItem[];
+};
+
+export type PortfolioItem = {
+  currentBalance: number;
+  lastTransactionPrice: string;
+  previousClosingPrice: string;
+  script: string;
+  valueAsOfLastTransactionPrice: string;
+  valueAsOfPreviousClosingPrice: string;
+  valueOfLastTransPrice: string;
+  valueOfPrevClosingPrice: string;
 };
