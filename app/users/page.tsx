@@ -293,8 +293,8 @@ function UpdateUserDialog({
                                 Select capital
                               </option>
                               {capitals
-                                .sort(
-                                  (a, b) => parseInt(a.code) > parseInt(b.code)
+                                .sort((a, b) =>
+                                  parseInt(a.code) > parseInt(b.code) ? 1 : -1
                                 )
                                 .map((capital) => {
                                   return (
