@@ -1,45 +1,16 @@
 "use client";
 import useInvoke from "@/hooks/useInvoke";
 import SectionLoading from "../_components/SectionLoading";
-import { useEffect } from "react";
 import Wrapper from "../_components/Wrapper";
-
-export type Company = {
-  companyName: string;
-  companyShareId: number;
-  issueCloseDate: string;
-  issueOpenDate: string;
-  scrip: string;
-  shareGroupName: string;
-  shareTypeName: string;
-  statusName: string;
-  subGroup: string;
-};
-
-export type Prospectus = {
-  clientName: string;
-  companyCode: string;
-  companyName: string;
-  companyShareId: number;
-  maxIssueCloseDate: string;
-  maxIssueCloseDateStr: string;
-  maxUnit: number;
-  minIssueOpenDate: string;
-  minIssueOpenDateStr: string;
-  minUnit: number;
-  scrip: string;
-  shareGroupName: string;
-  sharePerUnit: number;
-  shareTypeName: string;
-  shareValue: number;
-};
+import Button from "../_components/Button";
+import { Company, Prospectus } from "../_components/Models";
 
 export default function OpenShares() {
-  const {
-    data: shares,
-    handle: getShares,
-    loading: isFetchingShares,
-  } = useInvoke<Company[]>("list_open_shares");
+  const { data: shares, loading: isFetchingShares } = useInvoke<Company[]>(
+    "list_open_shares",
+    [],
+    true
+  );
   const {
     data: prospectus,
     handle: getShareDetails,
@@ -47,26 +18,20 @@ export default function OpenShares() {
     error,
   } = useInvoke<Prospectus>("get_company_prospectus");
 
-  useEffect(() => {
-    getShares();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
     <Wrapper showBack={true} title="Open Shares">
       {isFetchingShares && <SectionLoading />}
       {shares?.map((share) => {
         return (
-          <div
+          <Button
             onClick={() => {
               if (share.companyShareId !== prospectus?.companyShareId)
                 getShareDetails({ id: share.companyShareId });
             }}
             key={share.companyName}
-            className="flex p-2 bg-slate-200 cursor-pointer rounded-lg justify-center items-center"
           >
             {share.companyName}
-          </div>
+          </Button>
         );
       })}
       <div className="relative">

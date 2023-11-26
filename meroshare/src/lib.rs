@@ -1,3 +1,4 @@
+use ipo::IPOResultResponse;
 use reqwest::Error;
 use reqwest::Method;
 use reqwest::StatusCode;
@@ -153,6 +154,7 @@ impl Meroshare {
                 let result = make_request(&url, Method::GET, None, Some(headers)).await;
                 match result {
                     Ok(value) => {
+                        println!("{:?}", value.json().await);
                         let user: UserDetails = value.json().await.unwrap();
                         Ok(user)
                     }
@@ -217,7 +219,7 @@ impl Meroshare {
                         }
                     ],
                     "page": 1,
-                    "size": 8,
+                    "size": 5,
                     "searchRoleViewConstants": "VIEW_APPLICANT_FORM_COMPLETE",
                     "filterDateParams": [
                         {
@@ -247,30 +249,26 @@ impl Meroshare {
         }
     }
 
-    pub async fn get_company_result(
-        &mut self,
-        user: &User,
-        company_index: usize,
-    ) -> Result<IPOResult, &'static str> {
+    pub async fn get_company_result(&mut self, user: &User, id: &str) -> String {
         match self.get_auth_header(user).await {
             Ok(headers) => {
-                let shares = self.get_application_report(user).await.unwrap();
-                let application = shares.get(company_index).unwrap();
-                let url = MERO_SHARE_URL.to_string()
-                    + "applicantForm/report/detail/"
-                    + (application.id).to_string().as_str();
+                let url = MERO_SHARE_URL.to_string() + "applicantForm/report/detail/" + id;
                 let result = make_request(&url, Method::GET, None, Some(headers)).await;
+                println!("{:?}", result);
                 match result {
                     Ok(value) => {
-                        let result: IPOResult = value.json().await.unwrap();
-                        Ok(result)
+                        let result: IPOResultResponse = match value.json().await {
+                            Ok(result) => result,
+                            Err(_) => IPOResultResponse {
+                                status: "Failed to Fetch".to_string(),
+                            },
+                        };
+                        result.status
                     }
-                    Err(_) => Err("Something went wrong"),
+                    Err(_) => "Failed to Fetch".to_string(),
                 }
             }
-            Err(_) => Ok(IPOResult {
-                status: "Failed to Fetch".to_string(),
-            }),
+            Err(_) => "Failed to Fetch".to_string(),
         }
     }
 

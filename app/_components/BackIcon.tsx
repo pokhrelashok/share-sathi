@@ -9,7 +9,7 @@ function BackIcon() {
       onClick={() => {
         router.back();
       }}
-      className="cursor-pointer w-[30px] h-[30px] sm:w-[42px] sm:h-[42px]"
+      className="cursor-pointer w-[30px] h-[30px] sm:w-[32px] sm:h-[32px]"
       height="40px"
       id="Layer_1"
       version="1.1"

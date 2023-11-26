@@ -13,6 +13,8 @@ type UserDetails = {
   banks: Capital[];
 };
 
+const HIDDEN_FIELDS = ["id", "name", "bank"];
+
 function ManageUsers() {
   const {
     data: users,
@@ -52,6 +54,7 @@ function ManageUsers() {
       updatedData.unshift({
         ...data,
         id: Math.random().toString(36).slice(2, 7),
+        name: userDetails.details.name,
       });
     }
     updateUser({ data: JSON.stringify(updatedData) }).then(() => {
@@ -62,15 +65,17 @@ function ManageUsers() {
   }
 
   async function validateUser(data: User) {
+    if (users.find((u) => u.username == data?.username)) {
+      toast("User already exists!");
+      return false;
+    }
     try {
       const userDetails = await getUserDetails({ user: data });
       setUserDetails(userDetails);
       return true;
     } catch (e) {
-      if (!userDetails) {
-        toast("The credentials are not valid!");
-        return false;
-      }
+      toast("The credentials are not valid!");
+      return false;
     }
   }
 
@@ -79,8 +84,8 @@ function ManageUsers() {
     updatedData.splice(index, 1);
     updateUser({ data: JSON.stringify(updatedData) }).then(() => {
       setUser(null);
-      getUsers();
       toast("User deleted!");
+      getUsers();
     });
   }
 
@@ -112,14 +117,16 @@ function ManageUsers() {
       {loading || (!firstFetchDone && <SectionLoading />)}
       {users?.map((user, index) => {
         return (
-          <div
-            key={user.username}
-            className=" bg-zinc-200 p-2 px-3 rounded-md flex cursor-pointer items-center justify-between"
-          >
-            <div className="flex gap-2">
-              <span className="font-bold">{user.name}</span>
-            </div>
-            <div className="flex gap-1">
+          <Button key={user.username} className="justify-between">
+            <div className="font-semibold">{user.name}</div>
+            <div className="flex gap-1 items-center">
+              <a
+                href={`/portfolio/${user.id}?username=${encodeURIComponent(
+                  user.username
+                )}&password=${encodeURIComponent(user.password)}`}
+              >
+                <img height={30} width={30} src="/eye-icon.svg" />
+              </a>
               <button onClick={() => setUser(user)}>
                 <img height={36} width={36} src="/edit-icon.svg" />
               </button>
@@ -127,7 +134,7 @@ function ManageUsers() {
                 <img height={30} width={30} src="/delete-icon.svg" />
               </button>
             </div>
-          </div>
+          </Button>
         );
       })}
       {!loading && firstFetchDone && users?.length === 0 && (
@@ -235,7 +242,7 @@ function UpdateUserDialog({
                 <div className="mt-2 grid  grid-cols-2 gap-2">
                   {Object.keys(data).map((key) => {
                     if (data.hasOwnProperty(key)) {
-                      if (key === "id" || key === "bank") return null;
+                      if (HIDDEN_FIELDS.includes(key)) return null;
                       return (
                         <div key={key} className="flex flex-col">
                           <label
@@ -256,13 +263,17 @@ function UpdateUserDialog({
                               <option value="" disabled={true}>
                                 Select capital
                               </option>
-                              {capitals.map((capital) => {
-                                return (
-                                  <option key={capital.id} value={capital.id}>
-                                    {capital.name} ({capital.code})
-                                  </option>
-                                );
-                              })}
+                              {capitals
+                                .sort(
+                                  (a, b) => parseInt(a.code) > parseInt(b.code)
+                                )
+                                .map((capital) => {
+                                  return (
+                                    <option key={capital.id} value={capital.id}>
+                                      {capital.name} ({capital.code})
+                                    </option>
+                                  );
+                                })}
                             </select>
                           )}
                           {key !== "dp" && key !== "bank" && (
@@ -318,7 +329,7 @@ function UpdateUserDialog({
                   {user.id && (
                     <Button
                       type="button"
-                      color="red"
+                      className="bg-red-100 hover:bg-red-200"
                       onClick={() => {
                         handleDelete();
                       }}

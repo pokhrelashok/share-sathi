@@ -1,11 +1,14 @@
 extern crate prettytable;
 
 use meroshare::user::{User, UserDetails};
-use meroshare::{Bank, Capital, Company, IPOAppliedResult, Meroshare, Prospectus};
+use meroshare::{
+    Bank, Capital, Company, CompanyApplication, IPOAppliedResult, IPOResult, Meroshare, Prospectus,
+};
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
 use std::io::Read;
 use std::io::Write;
+use std::vec;
 
 pub struct Controller {
     meroshare: Meroshare,
@@ -93,6 +96,28 @@ impl Controller {
         let mut results: Vec<IPOAppliedResult> = vec![];
         for user in users.iter() {
             results.push(self.meroshare.apply_share(user, id, units).await.unwrap());
+        }
+        return results;
+    }
+
+    pub async fn get_application_report(&mut self) -> Vec<CompanyApplication> {
+        let users: Vec<User> = self.get_users().unwrap();
+        let user = users.get(0).unwrap();
+        match self.meroshare.get_application_report(user).await {
+            Ok(shares) => shares,
+            Err(_) => vec![],
+        }
+    }
+
+    pub async fn get_results<'a>(&mut self, id: String) -> Vec<IPOResult> {
+        let mut results: Vec<IPOResult> = vec![];
+        let users: Vec<User> = self.get_users().unwrap();
+        for user in users.iter() {
+            let result = self.meroshare.get_company_result(user, id.as_str()).await;
+            results.push(IPOResult {
+                user: user.name.clone(),
+                status: result,
+            });
         }
         return results;
     }

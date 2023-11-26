@@ -28,7 +28,7 @@ pub struct Company {
     #[serde(rename = "subGroup")]
     pub sub_group: String,
 }
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 
 pub struct CompanyApplication {
     #[serde(rename = "applicantFormId")]

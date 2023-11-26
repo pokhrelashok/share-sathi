@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
-fn default_tag() -> Vec<String> {
-    vec![]
-}
+
 #[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct User {
     pub id: String,
@@ -18,6 +16,7 @@ pub struct User {
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct UserDetails {
+    #[serde(default = "default_address")]
     pub address: String,
     pub boid: String,
     #[serde(rename = "clientCode")]
@@ -54,11 +53,16 @@ pub struct UserDetails {
     pub password_expiry_date_str: String,
     #[serde(rename = "profileName")]
     pub profile_name: String,
-    #[serde(rename = "renderDashboard")]
-    pub render_dashboard: bool,
-    #[serde(rename = "renewedDate")]
+    #[serde(rename = "renewedDate", default = "default_renew_date")]
     pub renewed_date: String,
-    #[serde(rename = "renewedDateStr")]
+    #[serde(rename = "renewedDateStr", default = "default_renew_date")]
     pub renewed_date_str: String,
     pub username: String,
+}
+
+fn default_renew_date() -> String {
+    String::from("Lifetime")
+}
+fn default_address() -> String {
+    String::from("")
 }

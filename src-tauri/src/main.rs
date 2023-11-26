@@ -2,7 +2,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use controller::UserDetailWithBank;
-use meroshare::{Capital, Company, IPOAppliedResult, Prospectus, User};
+use meroshare::{
+    Capital, Company, CompanyApplication, IPOAppliedResult, IPOResult, Prospectus, User,
+};
 
 #[derive(Default)]
 struct MyState {}
@@ -52,6 +54,18 @@ async fn get_user_details(user: User) -> Result<UserDetailWithBank, &'static str
     let res = controller.get_user_details(user).await;
     return res;
 }
+#[tauri::command]
+async fn get_application_report() -> Vec<CompanyApplication> {
+    let mut controller = controller::Controller::new();
+    let res = controller.get_application_report().await;
+    return res;
+}
+#[tauri::command]
+async fn get_share_results(id: String) -> Vec<IPOResult> {
+    let mut controller = controller::Controller::new();
+    let res = controller.get_results(id).await;
+    return res;
+}
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -61,7 +75,9 @@ fn main() {
             get_users,
             update_user,
             get_capitals,
-            get_user_details
+            get_user_details,
+            get_application_report,
+            get_share_results
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
