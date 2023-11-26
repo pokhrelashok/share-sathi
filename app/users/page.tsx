@@ -122,19 +122,17 @@ function ManageUsers() {
       {loading || (!firstFetchDone && <SectionLoading />)}
       {users?.map((user, index) => {
         return (
-          <Button
-            href={`/users/${user.id}`}
-            key={user.username}
-            className="justify-between"
-          >
+          <Button key={user.username} className="justify-between">
             <div className="font-semibold">{user.name}</div>
             <div className="flex gap-1 items-center">
-              <img
-                title="View User Details"
-                height={30}
-                width={30}
-                src="/eye-icon.svg"
-              />
+              <a href={`/users/${user.id}`}>
+                <img
+                  title="View User Details"
+                  height={30}
+                  width={30}
+                  src="/eye-icon.svg"
+                />
+              </a>
               <button onClick={() => setUser(user)}>
                 <img
                   title="Edit User"
@@ -288,11 +286,8 @@ function UpdateUserDialog({
                                 Select capital
                               </option>
                               {capitals
-                                .sort((a, b) =>
-                                  parseInt(a.code as string) >
-                                  parseInt(b.code as string)
-                                    ? 1
-                                    : 0
+                                .sort(
+                                  (a, b) => parseInt(a.code) > parseInt(b.code)
                                 )
                                 .map((capital) => {
                                   return (

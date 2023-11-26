@@ -110,7 +110,7 @@ impl Controller {
         }
     }
 
-    pub async fn get_results<'a>(&mut self, script: String) -> Vec<IPOResult> {
+    pub async fn get_results(&mut self, script: String) -> Vec<IPOResult> {
         let mut results: Vec<IPOResult> = vec![];
         let users: Vec<User> = self.get_users().unwrap();
         for user in users.iter() {
@@ -126,7 +126,7 @@ impl Controller {
         return results;
     }
 
-    pub async fn get_user_portfolio<'a>(&mut self, id: String) -> Portfolio {
+    pub async fn get_user_portfolio(&mut self, id: String) -> Portfolio {
         let users: Vec<User> = self.get_users().unwrap();
         let user = users
             .iter()

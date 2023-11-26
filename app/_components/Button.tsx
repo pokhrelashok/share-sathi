@@ -27,7 +27,7 @@ function Button(props: {
   ) : (
     <button onClick={onClick} disabled={disabled} className={cls} type={type}>
       {children}
-      {loading && <LoadingSpinner />}
+      {loading && <LoadingSpinner className="h-4 w-4" />}
     </button>
   );
 }
