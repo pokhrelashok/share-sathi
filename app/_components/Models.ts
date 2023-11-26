@@ -19,7 +19,7 @@ export type CompanyApplication = {
   applicantFormId: number;
   companyName: string;
   companyShareId: number;
-  script: string;
+  scrip: string;
   shareGroupName: string;
   shareTypeName: string;
   statusName: string;
@@ -58,5 +58,5 @@ export type Prospectus = {
 
 export type IpoResult = {
   status: string;
-  name: string;
+  user: string;
 };

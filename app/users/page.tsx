@@ -125,13 +125,34 @@ function ManageUsers() {
                   user.username
                 )}&password=${encodeURIComponent(user.password)}`}
               >
-                <img height={30} width={30} src="/eye-icon.svg" />
+                <img
+                  title="View User Details"
+                  height={30}
+                  width={30}
+                  src="/eye-icon.svg"
+                />
               </a>
               <button onClick={() => setUser(user)}>
-                <img height={36} width={36} src="/edit-icon.svg" />
+                <img
+                  title="Edit User"
+                  height={36}
+                  width={36}
+                  src="/edit-icon.svg"
+                />
               </button>
-              <button onClick={() => handleDelete(index)}>
-                <img height={30} width={30} src="/delete-icon.svg" />
+              <button
+                onClick={() => {
+                  if (confirm("Are you sure you want to delete the user?")) {
+                    handleDelete(index);
+                  }
+                }}
+              >
+                <img
+                  title="Delete User"
+                  height={30}
+                  width={30}
+                  src="/delete-icon.svg"
+                />
               </button>
             </div>
           </Button>
@@ -264,8 +285,11 @@ function UpdateUserDialog({
                                 Select capital
                               </option>
                               {capitals
-                                .sort(
-                                  (a, b) => parseInt(a.code) > parseInt(b.code)
+                                .sort((a, b) =>
+                                  parseInt(a.code as string) >
+                                  parseInt(b.code as string)
+                                    ? 1
+                                    : 0
                                 )
                                 .map((capital) => {
                                   return (

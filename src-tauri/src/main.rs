@@ -1,30 +1,39 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use controller::UserDetailWithBank;
+use controller::{Controller, UserDetailWithBank};
+use lazy_static::lazy_static;
 use meroshare::{
     Capital, Company, CompanyApplication, IPOAppliedResult, IPOResult, Prospectus, User,
 };
+use std::sync::Arc;
+use tokio::sync::Mutex as AsyncMutex;
 
-#[derive(Default)]
-struct MyState {}
+type SharedController = Arc<AsyncMutex<Controller>>;
+
+lazy_static! {
+    static ref CONTROLLER: SharedController = Arc::new(AsyncMutex::new(Controller::new()));
+}
 
 #[tauri::command]
 async fn list_open_shares() -> Result<Vec<Company>, &'static str> {
-    let mut controller = controller::Controller::new();
-    let shares = controller.list_open_shares().await;
+    let controller = CONTROLLER.clone();
+    let mut controller_lock = controller.lock().await;
+    let shares = controller_lock.list_open_shares().await;
     return Ok(shares.unwrap());
 }
 #[tauri::command]
 async fn get_company_prospectus(id: i32) -> Result<Prospectus, &'static str> {
-    let mut controller = controller::Controller::new();
-    let prospectus = controller.get_company_prospectus(id).await;
+    let controller = CONTROLLER.clone();
+    let mut controller_lock = controller.lock().await;
+    let prospectus = controller_lock.get_company_prospectus(id).await;
     return Ok(prospectus.unwrap());
 }
 #[tauri::command]
 async fn apply_share(id: i32, units: i32) -> Vec<IPOAppliedResult> {
-    let mut controller = controller::Controller::new();
-    let prospectus = controller.apply_share(id, units).await;
+    let controller = CONTROLLER.clone();
+    let mut controller_lock = controller.lock().await;
+    let prospectus = controller_lock.apply_share(id, units).await;
     return prospectus;
 }
 #[tauri::command]
@@ -44,26 +53,30 @@ async fn update_user(data: String) -> bool {
 }
 #[tauri::command]
 async fn get_capitals() -> Result<Vec<Capital>, &'static str> {
-    let controller = controller::Controller::new();
-    let res = controller.get_capitals().await;
+    let controller = CONTROLLER.clone();
+    let controller_lock = controller.lock().await;
+    let res: Result<Vec<Capital>, &str> = controller_lock.get_capitals().await;
     return res;
 }
 #[tauri::command]
 async fn get_user_details(user: User) -> Result<UserDetailWithBank, &'static str> {
-    let mut controller = controller::Controller::new();
-    let res = controller.get_user_details(user).await;
+    let controller = CONTROLLER.clone();
+    let mut controller_lock = controller.lock().await;
+    let res = controller_lock.get_user_details(user).await;
     return res;
 }
 #[tauri::command]
 async fn get_application_report() -> Vec<CompanyApplication> {
-    let mut controller = controller::Controller::new();
-    let res = controller.get_application_report().await;
+    let controller = CONTROLLER.clone();
+    let mut controller_lock = controller.lock().await;
+    let res = controller_lock.get_application_report().await;
     return res;
 }
 #[tauri::command]
-async fn get_share_results(id: String) -> Vec<IPOResult> {
-    let mut controller = controller::Controller::new();
-    let res = controller.get_results(id).await;
+async fn get_share_results(script: String) -> Vec<IPOResult> {
+    let controller = CONTROLLER.clone();
+    let mut controller_lock = controller.lock().await;
+    let res = controller_lock.get_results(script).await;
     return res;
 }
 fn main() {

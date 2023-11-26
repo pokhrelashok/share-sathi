@@ -109,11 +109,14 @@ impl Controller {
         }
     }
 
-    pub async fn get_results<'a>(&mut self, id: String) -> Vec<IPOResult> {
+    pub async fn get_results<'a>(&mut self, script: String) -> Vec<IPOResult> {
         let mut results: Vec<IPOResult> = vec![];
         let users: Vec<User> = self.get_users().unwrap();
         for user in users.iter() {
-            let result = self.meroshare.get_company_result(user, id.as_str()).await;
+            let result = self
+                .meroshare
+                .get_company_result(user, script.as_str())
+                .await;
             results.push(IPOResult {
                 user: user.name.clone(),
                 status: result,

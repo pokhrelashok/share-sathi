@@ -15,5 +15,10 @@ pub struct IPOAppliedResult {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct IPOResultResponse {
+    #[serde(rename = "statusName", default = "default_status")]
     pub status: String,
+}
+
+fn default_status() -> String {
+    "Failed to fetch".to_string()
 }

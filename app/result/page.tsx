@@ -16,14 +16,13 @@ function ResultPage() {
   const [selectedShare, setSelectedShare] = useState<null | CompanyApplication>(
     null
   );
-  const { data: result, handle: getResult } = useInvoke<IpoResult[]>(
-    "get_share_results",
-    []
-  );
+  const {
+    data: result,
+    handle: getResult,
+    loading: isFetchingShares,
+  } = useInvoke<IpoResult[]>("get_share_results", []);
   useEffect(() => {
-    console.log(selectedShare);
-    if (selectedShare)
-      getResult({ id: selectedShare.applicantFormId.toString() });
+    if (selectedShare) getResult({ script: selectedShare.scrip });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedShare]);
 
@@ -45,6 +44,7 @@ function ResultPage() {
       {selectedShare !== null && (
         <ViewResultDialog
           share={selectedShare}
+          loading={isFetchingShares}
           onClose={() => {
             setSelectedShare(null);
           }}
@@ -59,9 +59,11 @@ function ViewResultDialog({
   share,
   result,
   onClose,
+  loading,
 }: {
   share: CompanyApplication;
   onClose: () => any;
+  loading: boolean;
   result: IpoResult[];
 }) {
   return (
@@ -79,7 +81,7 @@ function ViewResultDialog({
           <div className="fixed inset-0 bg-black/25" />
         </Transition.Child>
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className="flex items-center justify-center p-4 text-center">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -89,22 +91,40 @@ function ViewResultDialog({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-lg text-gray-600 transform rounded-2xl overflow-hidden bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title
                   as="h3"
-                  className="text-lg font-bold leading-6 text-gray-600"
+                  className="text-lg font-bold leading-5  mb-4 flex flex-col gap-1"
                 >
-                  Result for {share.companyName}
+                  <div>{share.companyName}</div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm">{share.subGroup}</div>
+                    {!loading && (
+                      <div className="text-green-500 shrink-0 text-sm">
+                        Alloted{" "}
+                        {result.filter((r) => r.status === "Alloted").length}/
+                        {result.length}
+                      </div>
+                    )}
+                  </div>
                 </Dialog.Title>
-                <div className="flex flex-col overflow-scroll">
+                <div className="flex relative flex-col gap-1 max-h-[80vh] overflow-y-auto">
                   {result.map((res, ind) => {
                     return (
-                      <Button className="justify-between" key={ind}>
-                        <div>{res.name}</div>
+                      <Button
+                        className={`justify-between ${
+                          res.status !== "Alloted"
+                            ? "bg-red-100 hover:bg-red-200"
+                            : "bg-green-100 hover:bg-green-200"
+                        }`}
+                        key={ind}
+                      >
+                        <div>{res.user}</div>
                         <div>{res.status}</div>
                       </Button>
                     );
                   })}
+                  {loading && <SectionLoading className="min-h-[100px]" />}
                 </div>
               </Dialog.Panel>
             </Transition.Child>

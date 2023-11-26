@@ -154,7 +154,6 @@ impl Meroshare {
                 let result = make_request(&url, Method::GET, None, Some(headers)).await;
                 match result {
                     Ok(value) => {
-                        println!("{:?}", value.json().await);
                         let user: UserDetails = value.json().await.unwrap();
                         Ok(user)
                     }
@@ -207,35 +206,7 @@ impl Meroshare {
         match self.get_auth_header(user).await {
             Ok(headers) => {
                 let url = MERO_SHARE_URL.to_string() + "applicantForm/active/search/";
-                let body = json!({
-                    "filterFieldParams": [
-                        {
-                            "key": "companyShare.companyIssue.companyISIN.script",
-                            "alias": "Scrip"
-                        },
-                        {
-                            "key": "companyShare.companyIssue.companyISIN.company.name",
-                            "alias": "Company Name"
-                        }
-                    ],
-                    "page": 1,
-                    "size": 5,
-                    "searchRoleViewConstants": "VIEW_APPLICANT_FORM_COMPLETE",
-                    "filterDateParams": [
-                        {
-                            "key": "appliedDate",
-                            "condition": "",
-                            "alias": "",
-                            "value": ""
-                        },
-                        {
-                            "key": "appliedDate",
-                            "condition": "",
-                            "alias": "",
-                            "value": ""
-                        }
-                    ]
-                });
+                let body = json!({"filterFieldParams":[{"key":"companyShare.companyIssue.companyISIN.script","alias":"Scrip"},{"key":"companyShare.companyIssue.companyISIN.company.name","alias":"Company Name"}],"page":1,"size":200,"searchRoleViewConstants":"VIEW_APPLICANT_FORM_COMPLETE","filterDateParams":[{"key":"appliedDate","condition":"","alias":"","value":""},{"key":"appliedDate","condition":"","alias":"","value":""}]});
                 let result = make_request(&url, Method::POST, Some(body), Some(headers)).await;
                 match result {
                     Ok(value) => {
@@ -249,23 +220,28 @@ impl Meroshare {
         }
     }
 
-    pub async fn get_company_result(&mut self, user: &User, id: &str) -> String {
+    pub async fn get_company_result(&mut self, user: &User, script: &str) -> String {
         match self.get_auth_header(user).await {
             Ok(headers) => {
-                let url = MERO_SHARE_URL.to_string() + "applicantForm/report/detail/" + id;
-                let result = make_request(&url, Method::GET, None, Some(headers)).await;
-                println!("{:?}", result);
-                match result {
-                    Ok(value) => {
-                        let result: IPOResultResponse = match value.json().await {
-                            Ok(result) => result,
-                            Err(_) => IPOResultResponse {
-                                status: "Failed to Fetch".to_string(),
-                            },
-                        };
-                        result.status
+                let shares = self.get_application_report(user).await.unwrap();
+                let application_search = shares
+                    .iter()
+                    .find(|&application| application.script == script);
+
+                if let Some(application) = application_search {
+                    let url = MERO_SHARE_URL.to_string()
+                        + "applicantForm/report/detail/"
+                        + (application.id).to_string().as_str();
+                    let result = make_request(&url, Method::GET, None, Some(headers)).await;
+                    match result {
+                        Ok(value) => {
+                            let result: IPOResultResponse = value.json().await.unwrap();
+                            result.status
+                        }
+                        Err(_) => "Failed to Fetch".to_string(),
                     }
-                    Err(_) => "Failed to Fetch".to_string(),
+                } else {
+                    "Not Applied".to_string()
                 }
             }
             Err(_) => "Failed to Fetch".to_string(),

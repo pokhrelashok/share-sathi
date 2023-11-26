@@ -19,7 +19,7 @@ function Button(props: {
     children,
     onClick = () => {},
   } = props;
-  const cls = `inline-flex items-center justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 gap-2 focus-visible:ring-offset-2 ${className}`;
+  const cls = `inline-flex items-center justify-center rounded-md border border-transparent bg-blue-100 duration-200 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 gap-2 focus-visible:ring-offset-2 ${className}`;
   return href ? (
     <a href={href} className={cls}>
       {children}

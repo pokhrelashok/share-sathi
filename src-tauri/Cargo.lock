@@ -67,11 +67,13 @@ name = "app"
 version = "0.1.0"
 dependencies = [
  "controller",
+ "lazy_static",
  "meroshare",
  "serde",
  "serde_json",
  "tauri",
  "tauri-build",
+ "tokio",
 ]
 
 [[package]]
