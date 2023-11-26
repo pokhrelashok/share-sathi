@@ -78,7 +78,7 @@ function ManageUsers() {
       setUserDetails(userDetails);
       return true;
     } catch (e) {
-      toast("The credentials are not valid!");
+      toast(e as string);
       return false;
     }
   }
@@ -257,11 +257,18 @@ function UpdateUserDialog({
               <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title
                   as="h3"
-                  className="text-lg font-bold leading-6 text-gray-600"
+                  className="text-lg font-bold leading-6 text-gray-600 justify-between flex items-center mb-4"
                 >
-                  {user.id ? "Update" : "Create"} User
+                  <div>{user.id ? "Update" : "Create"} User</div>
+                  <img
+                    onClick={onClose}
+                    src="/x-icon.svg"
+                    className="cursor-pointer"
+                    height={30}
+                    width={30}
+                  />
                 </Dialog.Title>
-                <div className="mt-2 grid  grid-cols-2 gap-2">
+                <div className="grid  grid-cols-2 gap-2">
                   {Object.keys(data).map((key) => {
                     if (data.hasOwnProperty(key)) {
                       if (HIDDEN_FIELDS.includes(key)) return null;

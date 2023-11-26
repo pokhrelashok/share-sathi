@@ -43,6 +43,7 @@ use crate::request::make_request;
 pub use crate::transaction::TransactionView;
 pub use crate::user::User;
 use crate::user::UserDetails;
+use crate::user::UserStatus;
 
 const PORTFOLIO_URL: &str = "https://webbackend.cdsc.com.np/api/meroShareView/";
 const MERO_SHARE_URL: &str = "https://webbackend.cdsc.com.np/api/meroShare/";
@@ -61,7 +62,7 @@ impl Meroshare {
     pub async fn get_auth_header(
         &mut self,
         user: &User,
-    ) -> Result<HashMap<String, String>, &'static str> {
+    ) -> Result<HashMap<String, String>, String> {
         let mut token = String::from("");
         let mut token_guard = self.tokens.lock().await;
         // let mut capital_guard = self.capitals.lock().await;
@@ -81,10 +82,19 @@ impl Meroshare {
                     Ok(value) => {
                         let status_code = value.status();
                         if status_code != StatusCode::OK {
-                            return Err("Failed To Login");
+                            return Err("Failed To Login".to_string());
                         }
-                        token = value
-                            .headers()
+                        // Extract headers
+                        let headers = value.headers().clone();
+                        let status: UserStatus = value.json().await.unwrap();
+
+                        if status.password_expired || status.demat_expired || status.account_expired
+                        {
+                            let msg = status.message.clone();
+                            return Err(msg);
+                        }
+
+                        token = headers
                             .get("authorization")
                             .unwrap()
                             .to_str()
@@ -93,7 +103,7 @@ impl Meroshare {
                         token_guard.insert(user.username.clone(), token.clone());
                     }
                     Err(_error) => {
-                        return Err("Failed To Login");
+                        return Err("Failed To Login".to_string());
                     }
                 }
             }
@@ -117,7 +127,7 @@ impl Meroshare {
 
     #[allow(dead_code)]
 
-    pub async fn get_user_banks(&mut self, user: &User) -> Result<Vec<Bank>, &'static str> {
+    pub async fn get_user_banks(&mut self, user: &User) -> Result<Vec<Bank>, String> {
         // let headers = .unwrap();
         match self.get_auth_header(user).await {
             Ok(headers) => {
@@ -128,7 +138,7 @@ impl Meroshare {
                         let banks: Vec<Bank> = value.json().await.unwrap();
                         Ok(banks)
                     }
-                    Err(_) => Err("Something went wrong"),
+                    Err(_) => Err("Something went wrong".to_string()),
                 }
             }
             Err(e) => Err(e),
@@ -147,17 +157,18 @@ impl Meroshare {
             Err(error) => Err(error),
         }
     }
-    pub async fn get_user_details(&mut self, user: &User) -> Result<UserDetails, &'static str> {
+    pub async fn get_user_details(&mut self, user: &User) -> Result<UserDetails, String> {
         match self.get_auth_header(user).await {
             Ok(headers) => {
                 let url = MERO_SHARE_URL.to_string() + "ownDetail/";
                 let result = make_request(&url, Method::GET, None, Some(headers)).await;
                 match result {
                     Ok(value) => {
+                        println!("{:?}", value);
                         let user: UserDetails = value.json().await.unwrap();
                         Ok(user)
                     }
-                    Err(_) => Err("something went wrong"),
+                    Err(_) => Err("something went wrong".to_string()),
                 }
             }
             Err(e) => Err(e),
@@ -166,7 +177,7 @@ impl Meroshare {
 
     #[allow(dead_code)]
 
-    pub async fn get_current_issue(&mut self, user: &User) -> Result<Vec<Company>, &str> {
+    pub async fn get_current_issue(&mut self, user: &User) -> Result<Vec<Company>, String> {
         match self.get_auth_header(user).await {
             Ok(headers) => {
                 let url = MERO_SHARE_URL.to_string() + "companyShare/currentIssue/";
@@ -190,7 +201,7 @@ impl Meroshare {
                         let response: ApiResponseCurrentIssue = value.json().await.unwrap();
                         Ok(response.object)
                     }
-                    Err(_) => Err("Something went wrong"),
+                    Err(_) => Err("Something went wrong".to_string()),
                 }
             }
             Err(e) => return Err(e),
@@ -202,7 +213,7 @@ impl Meroshare {
     pub async fn get_application_report(
         &mut self,
         user: &User,
-    ) -> Result<Vec<CompanyApplication>, &'static str> {
+    ) -> Result<Vec<CompanyApplication>, String> {
         match self.get_auth_header(user).await {
             Ok(headers) => {
                 let url = MERO_SHARE_URL.to_string() + "applicantForm/active/search/";
@@ -213,7 +224,7 @@ impl Meroshare {
                         let response: ApiResponseApplicationReport = value.json().await.unwrap();
                         Ok(response.object)
                     }
-                    Err(_) => Err("Something went wrong"),
+                    Err(_) => Err("Something went wrong".to_string()),
                 }
             }
             Err(err) => Err(err),
@@ -265,7 +276,7 @@ impl Meroshare {
         }
     }
 
-    pub async fn get_portfolio(&mut self, user: &User) -> Result<Portfolio, &'static str> {
+    pub async fn get_portfolio(&mut self, user: &User) -> Result<Portfolio, String> {
         match self.get_auth_header(user).await {
             Ok(headers) => {
                 let user_details = self.get_user_details(&user).await.unwrap();
@@ -284,14 +295,14 @@ impl Meroshare {
                         let result: Portfolio = value.json().await.unwrap();
                         Ok(result)
                     }
-                    Err(_) => Err("Something went wrong"),
+                    Err(_) => Err("Something went wrong".to_string()),
                 }
             }
             Err(e) => Err(e),
         }
     }
 
-    pub async fn get_transactions(&mut self, user: &User) -> Result<TransactionView, &'static str> {
+    pub async fn get_transactions(&mut self, user: &User) -> Result<TransactionView, String> {
         match self.get_auth_header(user).await {
             Ok(headers) => {
                 let user_details = self.get_user_details(&user).await.unwrap();
@@ -310,7 +321,7 @@ impl Meroshare {
                         let result: TransactionView = value.json().await.unwrap();
                         Ok(result)
                     }
-                    Err(_) => Err("Something went wrong"),
+                    Err(_) => Err("Something went wrong".to_string()),
                 }
             }
             Err(e) => Err(e),

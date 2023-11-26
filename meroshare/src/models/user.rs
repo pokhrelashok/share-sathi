@@ -72,3 +72,23 @@ fn default_renew_date() -> String {
 fn default_address() -> String {
     String::from("")
 }
+#[derive(Debug, Deserialize, Clone, Serialize)]
+pub struct UserStatus {
+    #[serde(rename = "statusCode")]
+    pub status_code: u32,
+    #[serde(rename = "passwordPolicyChanged")]
+    pub password_policy_changed: bool,
+    #[serde(rename = "passwordExpired")]
+    pub password_expired: bool,
+    #[serde(rename = "changePassword")]
+    pub change_password: bool,
+    #[serde(rename = "accountExpired")]
+    pub account_expired: bool,
+    #[serde(rename = "dematExpired")]
+    pub demat_expired: bool,
+    pub message: String,
+    #[serde(rename = "isTransactionPINNotSetBefore")]
+    pub is_transaction_pin_not_set_before: bool,
+    #[serde(rename = "isTransactionPINReset")]
+    pub is_transaction_pin_reset: bool,
+}

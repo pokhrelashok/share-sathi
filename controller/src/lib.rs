@@ -27,7 +27,7 @@ impl Controller {
             meroshare: Meroshare::new(),
         }
     }
-    pub fn get_users(&self) -> Result<Vec<User>, &str> {
+    pub fn get_users(&self) -> Result<Vec<User>, String> {
         match File::open("users.json") {
             Ok(mut file) => {
                 let mut contents = String::new();
@@ -36,7 +36,7 @@ impl Controller {
                 let users: Vec<User> = serde_json::from_str(&contents).expect("Invalid JSON");
                 Ok(users)
             }
-            Err(_) => Err("Couldn't fetch data"),
+            Err(_) => Err("Couldn't fetch data".to_string()),
         }
     }
     pub fn update_user(&self, data: String) -> bool {
@@ -51,10 +51,7 @@ impl Controller {
         true
     }
 
-    pub async fn get_user_details(
-        &mut self,
-        user: User,
-    ) -> Result<UserDetailWithBank, &'static str> {
+    pub async fn get_user_details(&mut self, user: User) -> Result<UserDetailWithBank, String> {
         match self.meroshare.get_user_details(&user).await {
             Ok(details) => {
                 let banks = self.meroshare.get_user_banks(&user).await.unwrap();
@@ -63,32 +60,32 @@ impl Controller {
                     banks: banks,
                 })
             }
-            Err(_) => Err("Invalid credentials"),
+            Err(e) => Err(e),
         }
     }
 
-    pub async fn get_capitals(&self) -> Result<Vec<Capital>, &'static str> {
+    pub async fn get_capitals(&self) -> Result<Vec<Capital>, String> {
         match self.meroshare.get_capitals().await {
             Ok(banks) => Ok(banks),
-            Err(_) => Err("Something went wrong!"),
+            Err(_) => Err("Something went wrong!".to_string()),
         }
     }
 
-    pub async fn list_open_shares(&mut self) -> Result<Vec<Company>, &str> {
+    pub async fn list_open_shares(&mut self) -> Result<Vec<Company>, String> {
         let users = self.get_users().unwrap();
         let user = users.get(0).unwrap();
         match self.meroshare.get_current_issue(user).await {
             Ok(shares) => Ok(shares),
-            Err(_) => Err("Something went wrong!"),
+            Err(_) => Err("Something went wrong!".to_string()),
         }
     }
 
-    pub async fn get_company_prospectus(&mut self, id: i32) -> Result<Prospectus, &str> {
+    pub async fn get_company_prospectus(&mut self, id: i32) -> Result<Prospectus, String> {
         let users: Vec<User> = self.get_users().unwrap();
         let user = users.get(0).unwrap();
         match self.meroshare.get_company_prospectus(user, id).await {
             Ok(prospectus) => Ok(prospectus),
-            Err(_) => Err("Something went wrong!"),
+            Err(_) => Err("Something went wrong!".to_string()),
         }
     }
 

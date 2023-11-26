@@ -16,14 +16,14 @@ lazy_static! {
 }
 
 #[tauri::command]
-async fn list_open_shares() -> Result<Vec<Company>, &'static str> {
+async fn list_open_shares() -> Result<Vec<Company>, String> {
     let controller = CONTROLLER.clone();
     let mut controller_lock = controller.lock().await;
     let shares = controller_lock.list_open_shares().await;
     return Ok(shares.unwrap());
 }
 #[tauri::command]
-async fn get_company_prospectus(id: i32) -> Result<Prospectus, &'static str> {
+async fn get_company_prospectus(id: i32) -> Result<Prospectus, String> {
     let controller = CONTROLLER.clone();
     let mut controller_lock = controller.lock().await;
     let prospectus = controller_lock.get_company_prospectus(id).await;
@@ -52,14 +52,14 @@ async fn update_user(data: String) -> bool {
     return res;
 }
 #[tauri::command]
-async fn get_capitals() -> Result<Vec<Capital>, &'static str> {
+async fn get_capitals() -> Result<Vec<Capital>, String> {
     let controller = CONTROLLER.clone();
     let controller_lock = controller.lock().await;
-    let res: Result<Vec<Capital>, &str> = controller_lock.get_capitals().await;
+    let res = controller_lock.get_capitals().await;
     return res;
 }
 #[tauri::command]
-async fn get_user_details(user: User) -> Result<UserDetailWithBank, &'static str> {
+async fn get_user_details(user: User) -> Result<UserDetailWithBank, String> {
     let controller = CONTROLLER.clone();
     let mut controller_lock = controller.lock().await;
     let res = controller_lock.get_user_details(user).await;
