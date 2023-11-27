@@ -1,5 +1,5 @@
 "use client";
-import useLoadingScreen from "./useLoadingScreen";
+import useLoadingScreen from "../../hooks/useLoadingScreen";
 
 function GlobalHandler() {
   useLoadingScreen();

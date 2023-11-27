@@ -3,9 +3,9 @@ import { useParams, useSearchParams } from "next/navigation";
 import Wrapper from "../../_components/Wrapper";
 import useInvoke from "@/hooks/useInvoke";
 import { useEffect } from "react";
-import { Portfolio } from "@/app/_components/Models";
+import { Portfolio } from "@/types";
 
-const formatPrice = (x: number) => {
+export const formatPrice = (x: number) => {
   let str = x.toString();
   var afterPoint = "";
   if (str.indexOf(".") > 0)
@@ -35,11 +35,11 @@ function UserDetailsPage() {
       <table className="min-w-full bg-white border border-gray-300 z-[1111111]">
         <thead>
           <tr className="sticky top-0 bg-white border-b">
-            <th className="py-2 px-4 text-left"> # </th>
-            <th className="py-2 px-4 text-left"> Script </th>
-            <th className="py-2 px-4 text-left"> Quantity </th>
-            <th className="py-2 px-4 text-left"> Previous Value </th>
-            <th className="py-2 px-4 text-left"> Latest Value </th>
+            <th className="py-2 px-4 text-left"># </th>
+            <th className="py-2 px-4 text-left">Script</th>
+            <th className="py-2 px-4 text-left">Quantity</th>
+            <th className="py-2 px-4 text-left">Previous Value</th>
+            <th className="py-2 px-4 text-left">Latest Value</th>
           </tr>
         </thead>
         <tbody>

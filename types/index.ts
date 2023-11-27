@@ -62,6 +62,11 @@ export type IpoResult = {
   user: string;
 };
 
+export type IpoAppliedResult = {
+  message: string;
+  status: string;
+};
+
 export type Portfolio = {
   totalItems: number;
   totalValueOfLastTransPrice: number;

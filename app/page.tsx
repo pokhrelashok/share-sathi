@@ -2,7 +2,7 @@
 import Button from "./_components/Button";
 import Wrapper from "./_components/Wrapper";
 import toast from "react-hot-toast";
-import { User } from "./_components/Models";
+import { User } from "../types";
 import useInvoke from "@/hooks/useInvoke";
 
 export default function Home() {

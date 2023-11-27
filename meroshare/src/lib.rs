@@ -164,7 +164,6 @@ impl Meroshare {
                 let result = make_request(&url, Method::GET, None, Some(headers)).await;
                 match result {
                     Ok(value) => {
-                        println!("{:?}", value);
                         let user: UserDetails = value.json().await.unwrap();
                         Ok(user)
                     }

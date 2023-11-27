@@ -1,7 +1,7 @@
 "use client";
 import useInvoke from "@/hooks/useInvoke";
 import Wrapper from "../_components/Wrapper";
-import { CompanyApplication, IpoResult } from "../_components/Models";
+import { CompanyApplication, IpoResult } from "../../types";
 import SectionLoading from "../_components/SectionLoading";
 import Button from "../_components/Button";
 import { Fragment, useEffect, useState } from "react";

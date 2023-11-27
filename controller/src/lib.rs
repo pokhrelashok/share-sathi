@@ -89,13 +89,14 @@ impl Controller {
         }
     }
 
-    pub async fn apply_share(&mut self, id: i32, units: i32) -> Vec<IPOAppliedResult> {
-        let users: Vec<User> = self.get_users().unwrap();
-        let mut results: Vec<IPOAppliedResult> = vec![];
-        for user in users.iter() {
-            results.push(self.meroshare.apply_share(user, id, units).await.unwrap());
-        }
-        return results;
+    pub async fn apply_share(&mut self, id: i32, user: User, units: i32) -> IPOAppliedResult {
+        // let users: Vec<User> = self.get_users().unwrap();
+        // let mut results: Vec<IPOAppliedResult> = vec![];
+        // for user in users.iter() {
+        let result = self.meroshare.apply_share(&user, id, units).await.unwrap();
+        return result;
+        // }
+        // return results;
     }
 
     pub async fn get_application_report(&mut self) -> Vec<CompanyApplication> {

@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import Wrapper from "../_components/Wrapper";
 import Button from "../_components/Button";
 import { Capital, User } from "../_components/Models";
+import { ask } from "@tauri-apps/api/dialog";
 
 type UserDetails = {
   details: User;
@@ -83,7 +84,9 @@ function ManageUsers() {
     }
   }
 
-  function handleDelete(index: number) {
+  async function handleDelete(index: number) {
+    const verify = await ask("Are you sure you want to delete the user?");
+    if (!verify) return;
     const updatedData = [...(users || [])];
     updatedData.splice(index, 1);
     updateUser({ data: JSON.stringify(updatedData) }).then(() => {
@@ -143,9 +146,7 @@ function ManageUsers() {
               </button>
               <button
                 onClick={() => {
-                  if (confirm("Are you sure you want to delete the user?")) {
-                    handleDelete(index);
-                  }
+                  handleDelete(index);
                 }}
               >
                 <img
