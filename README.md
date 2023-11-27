@@ -1,6 +1,6 @@
 # Share Sathi : A Meroshare helper
 
-![App Icon](/app-icon.png)
+![App Icon](/src-tauri/icons/128x128.png)
 
 Are you tired of having to manually fill shares. Well this project has you covered. You can check list of open shares, fill one for multiple users on one click and come back and view the results and much more.
 
