@@ -6,7 +6,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import toast from "react-hot-toast";
 import Wrapper from "../_components/Wrapper";
 import Button from "../_components/Button";
-import { Capital, User } from "../_components/Models";
+import { Capital, User } from "../../types";
 import { ask } from "@tauri-apps/api/dialog";
 
 type UserDetails = {

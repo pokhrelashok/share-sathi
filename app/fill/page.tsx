@@ -7,8 +7,8 @@ import { Company, IpoAppliedResult, Prospectus, User } from "../../types";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import LoadingSpinner from "../_components/LoadingSpinner";
-import { formatPrice } from "../users/[id]/page";
 import { ask } from "@tauri-apps/api/dialog";
+import { formatPrice } from "@/utils/price";
 
 export default function OpenShares() {
   const { data: shares, loading: isFetchingShares } = useInvoke<Company[]>(
