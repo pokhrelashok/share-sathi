@@ -7,8 +7,8 @@ import { Company, IpoAppliedResult, Prospectus, User } from "../../types";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import LoadingSpinner from "../_components/LoadingSpinner";
-import { ask } from "@tauri-apps/api/dialog";
 import { formatPrice } from "@/utils/price";
+import ConfirmDialog from "../_components/ConfirmDialog";
 
 export default function OpenShares() {
   const { data: shares, loading: isFetchingShares } = useInvoke<Company[]>(
@@ -28,30 +28,25 @@ export default function OpenShares() {
   } = useInvoke<Prospectus>("get_company_prospectus");
   const { handle: apply, loading: isApplying } =
     useInvoke<IpoAppliedResult>("apply_share");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   async function applyShare(company: Prospectus) {
-    const verify = await ask(
-      `Are you share you want to apply ${company.minUnit} units of share for ${
-        company.companyCode
-      } at Rs ${formatPrice(company.sharePerUnit)} per unit?`
-    );
-    if (!verify) return;
+    setShowConfirmDialog(false);
     setApplyStarted(true);
-
-    for (let index = 0; index < users.length; index++) {
-      const user = users[index];
-      await apply({
-        id: company.companyShareId,
-        user: user,
-        units: company.minUnit,
-      })
-        .then((result) => {
-          setReport((old) => ({ ...old, [user.id as string]: result.status }));
-        })
-        .catch((e: string) => {
-          setReport((old) => ({ ...old, [user.id as string]: e }));
-        });
-    }
+    // for (let index = 0; index < users.length; index++) {
+    //   const user = users[index];
+    //   await apply({
+    //     id: company.companyShareId,
+    //     user: user,
+    //     units: company.minUnit,
+    //   })
+    //     .then((result) => {
+    //       setReport((old) => ({ ...old, [user.id as string]: result.status }));
+    //     })
+    //     .catch((e: string) => {
+    //       setReport((old) => ({ ...old, [user.id as string]: e }));
+    //     });
+    // }
     setSharesApplied((old) => [...old, selectedShare.companyShareId]);
   }
   useEffect(() => {
@@ -108,7 +103,7 @@ export default function OpenShares() {
                 isApplying ||
                 sharesApplied.includes(selectedShare.companyShareId)
               }
-              onClick={() => applyShare(selectedShare)}
+              onClick={() => setShowConfirmDialog(true)}
               className={`mt-4 w-full gap-2 ${
                 sharesApplied.includes(selectedShare.companyShareId) === true &&
                 "bg-green-100 hover:bg-green-200"
@@ -135,6 +130,18 @@ export default function OpenShares() {
             }
           }}
         ></FillProgressDialog>
+      )}
+      {showConfirmDialog && (
+        <ConfirmDialog
+          onCancel={() => setShowConfirmDialog(false)}
+          onConfirm={() => applyShare(selectedShare)}
+          title="Confirm your action!"
+          subtitle={`Are you share you want to apply ${
+            selectedShare.minUnit
+          } units of share for ${selectedShare.companyCode} at Rs ${formatPrice(
+            selectedShare.sharePerUnit
+          )} per unit?`}
+        />
       )}
     </Wrapper>
   );

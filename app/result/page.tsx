@@ -94,11 +94,20 @@ function ViewResultDialog({
               <Dialog.Panel className="w-full max-w-lg text-gray-600 transform rounded-2xl overflow-hidden bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title
                   as="h3"
-                  className="text-lg font-bold leading-6 text-gray-600 justify-between flex items-start mb-4 gap-4"
+                  className="text-lg font-bold leading-6 text-gray-600 mb-4"
                 >
-                  <div className="flex-1">
-                    <div>{share.companyName}</div>
-                    <div className="flex items-center gap-3">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex justify-between w-full">
+                      <div>{share.companyName}</div>
+                      <img
+                        onClick={onClose}
+                        src="/x-icon.svg"
+                        className="cursor-pointer"
+                        height={30}
+                        width={30}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
                       <div className="text-sm">{share.subGroup}</div>
                       {!loading && (
                         <div className="text-green-500 shrink-0 text-sm">
@@ -109,13 +118,6 @@ function ViewResultDialog({
                       )}
                     </div>
                   </div>
-                  <img
-                    onClick={onClose}
-                    src="/x-icon.svg"
-                    className="cursor-pointer"
-                    height={30}
-                    width={30}
-                  />
                 </Dialog.Title>
                 <div className="flex relative flex-col gap-1 max-h-[80vh] overflow-y-auto">
                   {result.map((res, ind) => {
