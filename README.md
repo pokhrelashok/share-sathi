@@ -1,36 +1,20 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Share Sathi : A Meroshare helper
 
-## Getting Started
+![App Icon](/app-icon.png)
 
-First, run the development server:
+Are you tired of having to manually fill shares. Well this project has you covered. You can check list of open shares, fill one for multiple users on one click and come back and view the results and much more.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## How to download?
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Download the installer from the releases section on the sidebar. Browsers may give you a hard time downloading the app, since this isn't a signed yet, so you may have to click `keep anyway` to download & `install anyway` to install the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Data Security?
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+All the data is stored locally and there are no api calls happening except the ones to meroshare.
 
-## Learn More
+## Screenshots
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+![Main Menu](/screenshots/shot-1.png)
+![Manage Users](/screenshots/shot-2.png)
+![View Open Shares](/screenshots/shot-4.png)
+![Check Share Results](/screenshots/shot-3.png)
