@@ -124,20 +124,20 @@ function ManageUsers() {
         return (
           <Button key={user.username} className="justify-between">
             <div className="font-semibold">{user.name}</div>
-            <div className="flex gap-1 items-center">
+            <div className="flex gap-2 items-center">
               <a href={`/users/${user.id}`}>
                 <img
                   title="View User Details"
-                  height={30}
-                  width={30}
+                  height={26}
+                  width={26}
                   src="/eye-icon.svg"
                 />
               </a>
               <button onClick={() => setUser(user)}>
                 <img
                   title="Edit User"
-                  height={36}
-                  width={36}
+                  height={30}
+                  width={30}
                   src="/edit-icon.svg"
                 />
               </button>
@@ -148,8 +148,8 @@ function ManageUsers() {
               >
                 <img
                   title="Delete User"
-                  height={30}
-                  width={30}
+                  height={26}
+                  width={26}
                   src="/delete-icon.svg"
                 />
               </button>

@@ -1,11 +1,12 @@
 "use client";
 import useInvoke from "@/hooks/useInvoke";
 import Wrapper from "../_components/Wrapper";
-import { CompanyApplication, IpoResult } from "../../types";
+import { CompanyApplication, IpoResult, User } from "../../types";
 import SectionLoading from "../_components/SectionLoading";
 import Button from "../_components/Button";
 import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
+import LoadingSpinner from "../_components/LoadingSpinner";
 
 function ResultPage() {
   const { data: shares, loading } = useInvoke<CompanyApplication[]>(
@@ -13,16 +14,28 @@ function ResultPage() {
     [],
     true
   );
+  const { data: users } = useInvoke<User[]>("get_users", [], true);
   const [selectedShare, setSelectedShare] = useState<null | CompanyApplication>(
     null
   );
-  const {
-    data: result,
-    handle: getResult,
-    loading: isFetchingShares,
-  } = useInvoke<IpoResult[]>("get_share_results", []);
+  const [report, setReport] = useState<Record<string, string>>({});
+  const { handle: getResult, loading: isFetchingShares } = useInvoke<string>(
+    "get_share_results",
+    []
+  );
+
   useEffect(() => {
-    if (selectedShare) getResult({ script: selectedShare.scrip });
+    if (!selectedShare || users.length === 0) return;
+    setReport({});
+    users.forEach((user) => {
+      getResult({ script: selectedShare.scrip, user })
+        .then((result) => {
+          setReport((old) => ({ ...old, [user.id as string]: result }));
+        })
+        .catch((e: string) => {
+          setReport((old) => ({ ...old, [user.id as string]: e }));
+        });
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedShare]);
 
@@ -48,7 +61,8 @@ function ResultPage() {
           onClose={() => {
             setSelectedShare(null);
           }}
-          result={result}
+          users={users}
+          result={report}
         />
       )}
     </Wrapper>
@@ -60,11 +74,13 @@ function ViewResultDialog({
   result,
   onClose,
   loading,
+  users,
 }: {
+  users: User[];
   share: CompanyApplication;
   onClose: () => any;
   loading: boolean;
-  result: IpoResult[];
+  result: Record<string, string>;
 }) {
   return (
     <Transition appear show={true} as={Fragment}>
@@ -112,30 +128,36 @@ function ViewResultDialog({
                       {!loading && (
                         <div className="text-green-500 shrink-0 text-sm">
                           Alloted{" "}
-                          {result.filter((r) => r.status === "Alloted").length}/
-                          {result.length}
+                          {
+                            Object.values(result).filter((r) => r === "Alloted")
+                              .length
+                          }
+                          /{users.length}
                         </div>
                       )}
                     </div>
                   </div>
                 </Dialog.Title>
-                <div className="flex relative flex-col gap-1 max-h-[80vh] overflow-y-auto">
-                  {result.map((res, ind) => {
+                <div className="flex flex-col gap-1 overflow-y-auto max-h-[80vh]">
+                  {users.map((user) => {
                     return (
                       <Button
-                        className={`justify-between ${
-                          res.status !== "Alloted"
-                            ? "bg-red-100 hover:bg-red-200"
-                            : "bg-green-100 hover:bg-green-200"
+                        key={user.id}
+                        className={`flex justify-between ${
+                          result[user.id] === "Alloted"
+                            ? "bg-green-100 hover:bg-green-200"
+                            : ""
                         }`}
-                        key={ind}
                       >
-                        <div>{res.user}</div>
-                        <div>{res.status}</div>
+                        <div>{user.name}</div>
+                        <div>
+                          {result[user.id || "-1"] || (
+                            <LoadingSpinner className="h-3 w-3" />
+                          )}
+                        </div>
                       </Button>
                     );
                   })}
-                  {loading && <SectionLoading className="min-h-[100px]" />}
                 </div>
               </Dialog.Panel>
             </Transition.Child>

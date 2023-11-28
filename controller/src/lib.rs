@@ -108,20 +108,21 @@ impl Controller {
         }
     }
 
-    pub async fn get_results(&mut self, script: String) -> Vec<IPOResult> {
-        let mut results: Vec<IPOResult> = vec![];
-        let users: Vec<User> = self.get_users().unwrap();
-        for user in users.iter() {
-            let result = self
-                .meroshare
-                .get_company_result(user, script.as_str())
-                .await;
-            results.push(IPOResult {
-                user: user.name.clone(),
-                status: result,
-            });
-        }
-        return results;
+    pub async fn get_results(&mut self, script: String, user: &User) -> String {
+        // let mut results: Vec<IPOResult> = vec![];
+        // let users: Vec<User> = self.get_users().unwrap();
+        // for user in users.iter() {
+        let result = self
+            .meroshare
+            .get_company_result(user, script.as_str())
+            .await;
+        // results.push(IPOResult {
+        //     user: user.name.clone(),
+        //     status: result,
+        // });
+        // }
+        // return results;
+        return result;
     }
 
     pub async fn get_user_portfolio(&mut self, id: String) -> Portfolio {

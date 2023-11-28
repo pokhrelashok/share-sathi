@@ -73,10 +73,10 @@ async fn get_application_report() -> Vec<CompanyApplication> {
     return res;
 }
 #[tauri::command]
-async fn get_share_results(script: String) -> Vec<IPOResult> {
+async fn get_share_results(script: String, user: User) -> String {
     let controller = CONTROLLER.clone();
     let mut controller_lock = controller.lock().await;
-    let res = controller_lock.get_results(script).await;
+    let res = controller_lock.get_results(script, &user).await;
     return res;
 }
 #[tauri::command]

@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "share-sathi",
-    "version": "2.0.3"
+    "version": "2.0.4"
   },
   "tauri": {
     "allowlist": {
