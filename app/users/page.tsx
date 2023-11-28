@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import Wrapper from "../_components/Wrapper";
 import Button from "../_components/Button";
 import { Capital, User } from "../../types";
+import LoadingSpinner from "../_components/LoadingSpinner";
 
 type UserDetails = {
   details: User;
@@ -26,7 +27,7 @@ function ManageUsers() {
   const { handle: updateUser, loading: updating } = useInvoke("update_user");
   const { data: capitals } = useInvoke<Capital[]>("get_capitals", [], true);
   const { handle: getUserDetails } = useInvoke<UserDetails>("get_user_details");
-
+  const [showCheckupModal, setShowCheckupModal] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
 
@@ -97,25 +98,34 @@ function ManageUsers() {
     <Wrapper
       showBack={true}
       action={
-        <Button
-          disabled={loading}
-          type="button"
-          onClick={() => {
-            setUser({
-              id: "",
-              dp: "",
-              username: "",
-              password: "",
-              crn: "",
-              pin: "",
-              name: "",
-              bank: "",
-              dpcode: "",
-            });
-          }}
-        >
-          Create
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowCheckupModal(true)}
+            tooltip="Check for issues in users like dmat expired, password expired"
+            className="bg-pink-100 hover:bg-pink-200"
+          >
+            Checkup Users
+          </Button>
+          <Button
+            disabled={loading}
+            type="button"
+            onClick={() => {
+              setUser({
+                id: "",
+                dp: "",
+                username: "",
+                password: "",
+                crn: "",
+                pin: "",
+                name: "",
+                bank: "",
+                dpcode: "",
+              });
+            }}
+          >
+            Create
+          </Button>
+        </div>
       }
       title="Manage Users"
     >
@@ -180,6 +190,13 @@ function ManageUsers() {
               handleDelete(currentUserIndex);
             }
           }}
+        />
+      )}
+      {showCheckupModal && (
+        <CheckupDialog
+          users={users}
+          onClose={() => setShowCheckupModal(false)}
+          isOpen={true}
         />
       )}
     </Wrapper>
@@ -372,6 +389,110 @@ function UpdateUserDialog({
             </Transition.Child>
           </div>
         </form>
+      </Dialog>
+    </Transition>
+  );
+}
+
+function CheckupDialog({
+  users,
+  onClose,
+  isOpen,
+}: {
+  users: User[];
+  isOpen: boolean;
+  onClose: () => any;
+}) {
+  const [result, setResult] = useState<Record<string, string>>({});
+  const { handle: getUserDetails } = useInvoke<UserDetails>("get_user_details");
+
+  useEffect(() => {
+    users.forEach((user) => {
+      getUserDetails({ user: user })
+        .then((result) => {
+          setResult((old) => ({
+            ...old,
+            [user.id as string]: "No issues found",
+          }));
+        })
+        .catch((e: string) => {
+          setResult((old) => ({ ...old, [user.id as string]: e }));
+        });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-10" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/25" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Title
+                  as="h3"
+                  className="text-lg font-bold leading-6 text-gray-600 justify-between flex items-center mb-4"
+                >
+                  <div>Checking Users for issues</div>
+                  <div className="text-green-500 shrink-0 text-sm">
+                    {
+                      Object.values(result).filter(
+                        (r) => r === "No issues found"
+                      ).length
+                    }
+                    /{users.length}
+                  </div>
+                </Dialog.Title>
+                <div className="flex flex-col gap-1 overflow-y-auto max-h-[80vh]">
+                  {users.map((user) => {
+                    if (!user || !user.id) return <></>;
+                    return (
+                      <Button
+                        key={user.id}
+                        className={`flex justify-between ${
+                          user.id in result
+                            ? result[user.id] === "No issues found"
+                              ? "bg-green-100 hover:bg-green-200"
+                              : "bg-red-100 hover:bg-red-200"
+                            : ""
+                        }`}
+                      >
+                        <div>{user.name}</div>
+                        <div>
+                          {result[user.id] || (
+                            <LoadingSpinner className="h-3 w-3" />
+                          )}
+                        </div>
+                      </Button>
+                    );
+                  })}
+                </div>
+                {/* <div className="mt-4 flex justify-end gap-2">
+                </div> */}
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
       </Dialog>
     </Transition>
   );

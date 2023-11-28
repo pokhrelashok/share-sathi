@@ -9,8 +9,10 @@ function Button(props: {
   children: ReactNode;
   disabled?: boolean;
   onClick?: () => any;
+  tooltip?: string;
 }) {
   const {
+    tooltip = "",
     href = false,
     disabled = false,
     type = "button",
@@ -25,7 +27,13 @@ function Button(props: {
       {children}
     </a>
   ) : (
-    <button onClick={onClick} disabled={disabled} className={cls} type={type}>
+    <button
+      title={tooltip}
+      onClick={onClick}
+      disabled={disabled}
+      className={cls}
+      type={type}
+    >
       {children}
       {loading && <LoadingSpinner className="h-4 w-4" />}
     </button>

@@ -18,26 +18,6 @@ function ResultPage() {
   const [selectedShare, setSelectedShare] = useState<null | CompanyApplication>(
     null
   );
-  const [report, setReport] = useState<Record<string, string>>({});
-  const { handle: getResult, loading: isFetchingShares } = useInvoke<string>(
-    "get_share_results",
-    []
-  );
-
-  useEffect(() => {
-    if (!selectedShare || users.length === 0) return;
-    setReport({});
-    users.forEach((user) => {
-      getResult({ script: selectedShare.scrip, user })
-        .then((result) => {
-          setReport((old) => ({ ...old, [user.id as string]: result }));
-        })
-        .catch((e: string) => {
-          setReport((old) => ({ ...old, [user.id as string]: e }));
-        });
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedShare]);
 
   return (
     <Wrapper showBack={true} title="Share Results">
@@ -57,12 +37,10 @@ function ResultPage() {
       {selectedShare !== null && (
         <ViewResultDialog
           share={selectedShare}
-          loading={isFetchingShares}
           onClose={() => {
             setSelectedShare(null);
           }}
           users={users}
-          result={report}
         />
       )}
     </Wrapper>
@@ -71,17 +49,34 @@ function ResultPage() {
 
 function ViewResultDialog({
   share,
-  result,
   onClose,
-  loading,
   users,
 }: {
   users: User[];
   share: CompanyApplication;
   onClose: () => any;
-  loading: boolean;
-  result: Record<string, string>;
 }) {
+  const [result, setResult] = useState<Record<string, string>>({});
+  const { handle: getResult, loading } = useInvoke<string>(
+    "get_share_results",
+    []
+  );
+
+  useEffect(() => {
+    if (!share || users.length === 0) return;
+    setResult({});
+    users.forEach((user) => {
+      getResult({ script: share.scrip, user })
+        .then((result) => {
+          setResult((old) => ({ ...old, [user.id as string]: result }));
+        })
+        .catch((e: string) => {
+          setResult((old) => ({ ...old, [user.id as string]: e }));
+        });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [share]);
+
   return (
     <Transition appear show={true} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={onClose}>
@@ -140,18 +135,25 @@ function ViewResultDialog({
                 </Dialog.Title>
                 <div className="flex flex-col gap-1 overflow-y-auto max-h-[80vh]">
                   {users.map((user) => {
+                    if (!user || !user.id) return <></>;
                     return (
                       <Button
                         key={user.id}
                         className={`flex justify-between ${
-                          result[user.id || "-1"] === "Alloted"
+                          result[user.id] === "Alloted"
                             ? "bg-green-100 hover:bg-green-200"
+                            : [
+                                "Rejected",
+                                "Not Alloted",
+                                "Not Filled",
+                              ].includes(result[user.id])
+                            ? "bg-red-100 hover:bg-red-200"
                             : ""
                         }`}
                       >
                         <div>{user.name}</div>
                         <div>
-                          {result[user.id || "-1"] || (
+                          {result[user.id] || (
                             <LoadingSpinner className="h-3 w-3" />
                           )}
                         </div>
