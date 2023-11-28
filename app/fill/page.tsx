@@ -29,24 +29,30 @@ export default function OpenShares() {
   const { handle: apply, loading: isApplying } =
     useInvoke<IpoAppliedResult>("apply_share");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [applyUnits, setApplyUnits] = useState(0);
+
+  useEffect(() => {
+    if (selectedShare && selectedShare.minUnit)
+      setApplyUnits(selectedShare.minUnit);
+  }, [selectedShare]);
 
   async function applyShare(company: Prospectus) {
     setShowConfirmDialog(false);
     setApplyStarted(true);
-    // for (let index = 0; index < users.length; index++) {
-    //   const user = users[index];
-    //   await apply({
-    //     id: company.companyShareId,
-    //     user: user,
-    //     units: company.minUnit,
-    //   })
-    //     .then((result) => {
-    //       setReport((old) => ({ ...old, [user.id as string]: result.status }));
-    //     })
-    //     .catch((e: string) => {
-    //       setReport((old) => ({ ...old, [user.id as string]: e }));
-    //     });
-    // }
+    for (let index = 0; index < users.length; index++) {
+      const user = users[index];
+      await apply({
+        id: company.companyShareId,
+        user: user,
+        units: applyUnits,
+      })
+        .then((result) => {
+          setReport((old) => ({ ...old, [user.id as string]: result.status }));
+        })
+        .catch((e: string) => {
+          setReport((old) => ({ ...old, [user.id as string]: e }));
+        });
+    }
     setSharesApplied((old) => [...old, selectedShare.companyShareId]);
   }
   useEffect(() => {
@@ -97,24 +103,45 @@ export default function OpenShares() {
               Share Type:{" "}
               <span className="font-bold">{selectedShare.shareTypeName}</span>
             </div>
-            <Button
-              loading={isApplying}
-              disabled={
-                isApplying ||
-                sharesApplied.includes(selectedShare.companyShareId)
-              }
-              onClick={() => setShowConfirmDialog(true)}
-              className={`mt-4 w-full gap-2 ${
-                sharesApplied.includes(selectedShare.companyShareId) === true &&
-                "bg-green-100 hover:bg-green-200"
-              }`}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setShowConfirmDialog(true);
+              }}
+              className="flex gap-2 items-center w-full mt-4"
             >
-              {sharesApplied.includes(selectedShare.companyShareId)
-                ? "Applied"
-                : isApplying
-                ? "Applying"
-                : "Apply"}
-            </Button>
+              <input
+                type="number"
+                min={selectedShare.minUnit}
+                max={100}
+                required={true}
+                value={applyUnits}
+                className="w-[120px] p-2 rounded-md h-[48px]"
+                onChange={(e) => setApplyUnits(parseInt(e.target.value))}
+              />
+              <Button
+                loading={isApplying}
+                disabled={
+                  isApplying ||
+                  sharesApplied.includes(selectedShare.companyShareId)
+                }
+                type="submit"
+                className={`w-full flex-1 gap-2 h-[48px] ${
+                  sharesApplied.includes(selectedShare.companyShareId) ===
+                    true && "bg-green-100 hover:bg-green-200"
+                } ${
+                  !applyUnits || applyUnits < selectedShare.minUnit
+                    ? "bg-red-100"
+                    : ""
+                }`}
+              >
+                {sharesApplied.includes(selectedShare.companyShareId)
+                  ? "Applied"
+                  : isApplying
+                  ? "Applying"
+                  : `Apply ${applyUnits || 0} Units`}
+              </Button>
+            </form>
           </div>
         )}
         {isFetchingProspectus && <SectionLoading />}
@@ -135,12 +162,19 @@ export default function OpenShares() {
         <ConfirmDialog
           onCancel={() => setShowConfirmDialog(false)}
           onConfirm={() => applyShare(selectedShare)}
-          title="Confirm your action!"
-          subtitle={`Are you share you want to apply ${
-            selectedShare.minUnit
-          } units of share for ${selectedShare.companyName} at Rs ${formatPrice(
-            selectedShare.sharePerUnit
-          )} per unit?`}
+          title="Confirm your action"
+          subtitle={
+            <div className="text-left">
+              Are you share you want to apply <strong>{applyUnits}</strong>{" "}
+              units of share for <strong>{selectedShare.companyName}</strong> at
+              Rs <strong>{formatPrice(selectedShare.sharePerUnit)}</strong> per
+              unit? (Rs{" "}
+              <strong>
+                {formatPrice(selectedShare.sharePerUnit * applyUnits)}
+              </strong>
+              )
+            </div>
+          }
         />
       )}
     </Wrapper>
