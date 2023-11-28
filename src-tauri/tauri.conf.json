@@ -51,7 +51,15 @@
       "csp": null
     },
     "updater": {
-      "active": false
+      "active": true,
+      "dialog": true,
+      "endpoints": [
+        "https://gist.githubusercontent.com/pokhrelashok/45ec215f99e9f1df03d5500009182a6b/raw/89d6f838310937b74cb88ada565e64bd209f7d4f/share-sathi-update.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERCQTgxQTZCQTI2MEIzQTgKUldTb3MyQ2lheHFvMjRTOFN4eGl6bldnc2JhZ3JCSU5zaThMSFNSWU1BK2krTlVsQW5DN2wvd0kK",
+      "windows": {
+        "installMode": "passive"
+      }
     },
     "windows": [
       {
