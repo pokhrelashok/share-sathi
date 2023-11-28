@@ -138,7 +138,7 @@ export default function OpenShares() {
           title="Confirm your action!"
           subtitle={`Are you share you want to apply ${
             selectedShare.minUnit
-          } units of share for ${selectedShare.companyCode} at Rs ${formatPrice(
+          } units of share for ${selectedShare.companyName} at Rs ${formatPrice(
             selectedShare.sharePerUnit
           )} per unit?`}
         />
