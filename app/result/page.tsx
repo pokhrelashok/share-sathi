@@ -144,7 +144,7 @@ function ViewResultDialog({
                       <Button
                         key={user.id}
                         className={`flex justify-between ${
-                          result[user.id] === "Alloted"
+                          result[user.id || "-1"] === "Alloted"
                             ? "bg-green-100 hover:bg-green-200"
                             : ""
                         }`}
