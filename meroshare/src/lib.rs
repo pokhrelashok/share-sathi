@@ -82,7 +82,9 @@ impl Meroshare {
                     Ok(value) => {
                         let status_code = value.status();
                         if status_code != StatusCode::OK {
-                            return Err("Failed To Login".to_string());
+                            return Err(
+                                format!("Failed to login for user {}", &user.name).to_string()
+                            );
                         }
                         // Extract headers
                         let headers = value.headers().clone();
@@ -103,7 +105,7 @@ impl Meroshare {
                         token_guard.insert(user.username.clone(), token.clone());
                     }
                     Err(_error) => {
-                        return Err("Failed To Login".to_string());
+                        return Err(format!("Failed to login for user {}", &user.name).to_string());
                     }
                 }
             }
@@ -113,15 +115,15 @@ impl Meroshare {
         Ok(headers)
     }
 
-    pub async fn get_capitals(&self) -> Result<Vec<Capital>, Error> {
+    pub async fn get_capitals(&self) -> Result<Vec<Capital>, String> {
         let url = MERO_SHARE_URL.to_string() + "capital/";
         let result = make_request(&url, Method::GET, None, None).await;
         match result {
             Ok(value) => {
-                let banks: Vec<Capital> = value.json().await?;
+                let banks: Vec<Capital> = value.json().await.unwrap();
                 Ok(banks)
             }
-            Err(error) => Err(error),
+            Err(_) => Err(String::from("Something went wrong")),
         }
     }
 
@@ -262,16 +264,16 @@ impl Meroshare {
         &mut self,
         user: &User,
         id: i32,
-    ) -> Result<Prospectus, Error> {
+    ) -> Result<Prospectus, String> {
         let headers = self.get_auth_header(user).await.unwrap();
         let url = MERO_SHARE_URL.to_string() + "active/" + (id).to_string().as_str();
         let result = make_request(&url, Method::GET, None, Some(headers)).await;
         match result {
             Ok(value) => {
-                let result: Prospectus = value.json().await?;
+                let result: Prospectus = value.json().await.unwrap();
                 Ok(result)
             }
-            Err(error) => Err(error),
+            Err(_) => Err(String::from("Something went wrong")),
         }
     }
 
@@ -333,35 +335,45 @@ impl Meroshare {
         id: i32,
         units: i32,
     ) -> Result<IPOAppliedResult, Error> {
-        let headers = self.get_auth_header(user).await.unwrap();
-        let bank_details = self
-            .get_bank_details(user.bank.as_str(), user)
-            .await
-            .unwrap();
-        let user_details = self.get_user_details(user).await.unwrap();
-        let url = MERO_SHARE_URL.to_string() + "applicantForm/share/apply/";
-        let body = json!({
-            "accountBranchId":bank_details.account_branch_id,
-            "accountNumber":bank_details.account_number,
-            "appliedKitta":units,
-            "bankId":user.bank,
-            "boid":user_details.boid,
-            "companyShareId":id,
-            "crnNumber":user.crn,
-            "customerId":bank_details.id,
-            "demat":user_details.demat,
-            "transactionPIN":user.pin,
-        });
-        let result = make_request(&url, Method::POST, Some(body), Some(headers)).await;
-        match result {
-            Ok(value) => {
-                let result: IPOAppliedResult = value.json().await?;
-                Ok(result)
+        match self.get_auth_header(user).await {
+            Ok(headers) => {
+                let bank_details = self
+                    .get_bank_details(user.bank.as_str(), user)
+                    .await
+                    .unwrap();
+                let user_details = self.get_user_details(user).await.unwrap();
+                let url = MERO_SHARE_URL.to_string() + "applicantForm/share/apply/";
+                let body = json!({
+                    "accountBranchId":bank_details.account_branch_id,
+                    "accountNumber":bank_details.account_number,
+                    "appliedKitta":units,
+                    "bankId":user.bank,
+                    "boid":user_details.boid,
+                    "companyShareId":id,
+                    "crnNumber":user.crn,
+                    "customerId":bank_details.id,
+                    "demat":user_details.demat,
+                    "transactionPIN":user.pin,
+                });
+                let result = make_request(&url, Method::POST, Some(body), Some(headers)).await;
+                match result {
+                    Ok(value) => {
+                        let result: IPOAppliedResult = value.json().await?;
+                        Ok(result)
+                    }
+                    Err(_) => {
+                        let result: IPOAppliedResult = IPOAppliedResult {
+                            message: String::from("Something went wrong"),
+                            status: String::from("APPLICATION_FAILED"),
+                        };
+                        Ok(result)
+                    }
+                }
             }
-            Err(_) => {
+            Err(e) => {
                 let result: IPOAppliedResult = IPOAppliedResult {
                     message: String::from("Something went wrong"),
-                    status: String::from("APPLICATION_FAILED"),
+                    status: e,
                 };
                 Ok(result)
             }

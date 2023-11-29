@@ -7,13 +7,15 @@ import Button from "../_components/Button";
 import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import LoadingSpinner from "../_components/LoadingSpinner";
+import Retry from "../_components/Retry";
 
 function ResultPage() {
-  const { data: shares, loading } = useInvoke<CompanyApplication[]>(
-    "get_application_report",
-    [],
-    true
-  );
+  const {
+    data: shares,
+    loading,
+    error,
+    handle: getShares,
+  } = useInvoke<CompanyApplication[]>("get_application_report", [], true);
   const { data: users } = useInvoke<User[]>("get_users", [], true);
   const [selectedShare, setSelectedShare] = useState<null | CompanyApplication>(
     null
@@ -43,6 +45,7 @@ function ResultPage() {
           users={users}
         />
       )}
+      {error && <Retry message={error} onRetry={getShares} />}
     </Wrapper>
   );
 }

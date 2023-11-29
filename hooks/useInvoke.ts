@@ -1,6 +1,7 @@
 "use client";
 import { invoke } from "@tauri-apps/api/tauri";
 import { useCallback, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 function useInvoke<T>(command: string, def: any = null, immediate = false) {
   const [loading, setLoading] = useState(false);
@@ -18,6 +19,7 @@ function useInvoke<T>(command: string, def: any = null, immediate = false) {
             return res(data);
           })
           .catch((err) => {
+            toast(err);
             setError(err);
             return rej(err);
           })

@@ -20,7 +20,7 @@ async fn list_open_shares() -> Result<Vec<Company>, String> {
     let controller = CONTROLLER.clone();
     let mut controller_lock = controller.lock().await;
     let shares = controller_lock.list_open_shares().await;
-    return Ok(shares.unwrap());
+    return shares;
 }
 #[tauri::command]
 async fn get_company_prospectus(id: i32) -> Result<Prospectus, String> {
@@ -66,7 +66,7 @@ async fn get_user_details(user: User) -> Result<UserDetailWithBank, String> {
     return res;
 }
 #[tauri::command]
-async fn get_application_report() -> Vec<CompanyApplication> {
+async fn get_application_report() -> Result<Vec<CompanyApplication>, String> {
     let controller = CONTROLLER.clone();
     let mut controller_lock = controller.lock().await;
     let res = controller_lock.get_application_report().await;

@@ -67,7 +67,7 @@ impl Controller {
     pub async fn get_capitals(&self) -> Result<Vec<Capital>, String> {
         match self.meroshare.get_capitals().await {
             Ok(banks) => Ok(banks),
-            Err(_) => Err("Something went wrong!".to_string()),
+            Err(e) => Err(e),
         }
     }
 
@@ -76,7 +76,7 @@ impl Controller {
         let user = users.get(0).unwrap();
         match self.meroshare.get_current_issue(user).await {
             Ok(shares) => Ok(shares),
-            Err(_) => Err("Something went wrong!".to_string()),
+            Err(e) => Err(e),
         }
     }
 
@@ -85,7 +85,7 @@ impl Controller {
         let user = users.get(0).unwrap();
         match self.meroshare.get_company_prospectus(user, id).await {
             Ok(prospectus) => Ok(prospectus),
-            Err(_) => Err("Something went wrong!".to_string()),
+            Err(e) => Err(e),
         }
     }
 
@@ -99,12 +99,12 @@ impl Controller {
         // return results;
     }
 
-    pub async fn get_application_report(&mut self) -> Vec<CompanyApplication> {
+    pub async fn get_application_report(&mut self) -> Result<Vec<CompanyApplication>, String> {
         let users: Vec<User> = self.get_users().unwrap();
         let user = users.get(0).unwrap();
         match self.meroshare.get_application_report(user).await {
-            Ok(shares) => shares,
-            Err(_) => vec![],
+            Ok(shares) => Ok(shares),
+            Err(e) => Err(e),
         }
     }
 

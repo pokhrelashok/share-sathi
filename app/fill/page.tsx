@@ -9,13 +9,16 @@ import { Dialog, Transition } from "@headlessui/react";
 import LoadingSpinner from "../_components/LoadingSpinner";
 import { formatPrice } from "@/utils/price";
 import ConfirmDialog from "../_components/ConfirmDialog";
+import toast from "react-hot-toast";
+import Retry from "../_components/Retry";
 
 export default function OpenShares() {
-  const { data: shares, loading: isFetchingShares } = useInvoke<Company[]>(
-    "list_open_shares",
-    [],
-    true
-  );
+  const {
+    data: shares,
+    loading: isFetchingShares,
+    handle: getShares,
+    error,
+  } = useInvoke<Company[]>("list_open_shares", [], true);
   const [sharesApplied, setSharesApplied] = useState<number[]>([]);
   const [applyStarted, setApplyStarted] = useState<boolean>(false);
   const { data: users } = useInvoke<User[]>("get_users", [], true);
@@ -24,7 +27,6 @@ export default function OpenShares() {
     data: selectedShare,
     handle: getShareDetails,
     loading: isFetchingProspectus,
-    error,
   } = useInvoke<Prospectus>("get_company_prospectus");
   const { handle: apply, loading: isApplying } =
     useInvoke<IpoAppliedResult>("apply_share");
@@ -72,7 +74,11 @@ export default function OpenShares() {
           <Button
             onClick={() => {
               if (share.companyShareId !== selectedShare?.companyShareId)
-                getShareDetails({ id: share.companyShareId });
+                getShareDetails({ id: share.companyShareId }).catch(
+                  (e: string) => {
+                    toast(e);
+                  }
+                );
             }}
             className={`${
               share.companyShareId == selectedShare?.companyShareId
@@ -177,6 +183,7 @@ export default function OpenShares() {
           }
         />
       )}
+      {error && <Retry message={error} onRetry={getShares} />}
     </Wrapper>
   );
 }
