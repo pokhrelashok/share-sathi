@@ -6,13 +6,8 @@ import { Dialog, Transition } from "@headlessui/react";
 import toast from "react-hot-toast";
 import Wrapper from "../_components/Wrapper";
 import Button from "../_components/Button";
-import { Capital, User } from "../../types";
+import { Capital, User, UserDetails } from "../../types";
 import LoadingSpinner from "../_components/LoadingSpinner";
-
-type UserDetails = {
-  details: User;
-  banks: Capital[];
-};
 
 const HIDDEN_FIELDS = ["id", "name", "bank", "dpcode"];
 

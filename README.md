@@ -14,7 +14,15 @@ All the data is stored locally and there are no api calls happening except the o
 
 ## Screenshots
 
-![Main Menu](/screenshots/shot-1.png)
-![Manage Users](/screenshots/shot-2.png)
-![View Open Shares](/screenshots/shot-4.png)
-![Check Share Results](/screenshots/shot-3.png)
+![Main Menu](/screenshots/1.png)
+_Main Menu_
+![Manage Users](/screenshots/2.png)
+_Manage Users_
+![User Checkup](/screenshots/3.png)
+_Check for User issues (demat expired, password expired)_
+![User Portfolio](/screenshots/4.png)
+_User Portfolio_
+![Open Shares](/screenshots/6.png)
+_Check Open Shares & Apply_
+![Check Result](/screenshots/5.png)
+_Check Application Result_

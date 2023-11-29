@@ -2,8 +2,8 @@
 import { useParams, useSearchParams } from "next/navigation";
 import Wrapper from "../../_components/Wrapper";
 import useInvoke from "@/hooks/useInvoke";
-import { useEffect } from "react";
-import { Portfolio } from "@/types";
+import { useEffect, useMemo } from "react";
+import { Portfolio, User, UserDetails } from "@/types";
 import { formatPrice } from "@/utils/price";
 import SectionLoading from "@/app/_components/SectionLoading";
 
@@ -11,12 +11,21 @@ function UserDetailsPage() {
   const params = useParams();
   const id = params.id;
   const { data, handle } = useInvoke<Portfolio>("get_user_portfolio");
+  const { data: users } = useInvoke<User[]>("get_users", [], true);
   useEffect(() => {
     handle({ id });
   }, [handle, id]);
 
+  const details = useMemo(() => {
+    return users.find((u) => u.id == id);
+  }, [users, id]);
+
   return (
-    <Wrapper className="!py-0" showBack={true} title="User Details">
+    <Wrapper
+      className="!py-0"
+      showBack={true}
+      title={`${details ? details.name : "User"} Portfolio`}
+    >
       {data ? (
         <table className="min-w-full bg-white border border-gray-300 z-[1111111]">
           <thead>

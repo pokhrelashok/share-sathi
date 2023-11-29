@@ -84,3 +84,8 @@ export type PortfolioItem = {
   valueOfLastTransPrice: string;
   valueOfPrevClosingPrice: string;
 };
+
+export type UserDetails = {
+  details: User;
+  banks: Capital[];
+};
