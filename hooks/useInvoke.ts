@@ -19,7 +19,6 @@ function useInvoke<T>(command: string, def: any = null, immediate = false) {
             return res(data);
           })
           .catch((err) => {
-            toast(err);
             setError(err);
             return rej(err);
           })

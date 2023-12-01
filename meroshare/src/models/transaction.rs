@@ -1,10 +1,10 @@
 use prettytable::{color, Attr, Cell, Row, Table};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use thousands::Separable;
 
 use crate::{currency::CURR_FORMAT, user::User};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct TransactionView {
     #[serde(rename = "totalItems")]
     pub total_items: u32,
@@ -61,7 +61,7 @@ impl TransactionView {
         table.printstd();
     }
 }
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Transaction {
     #[serde(rename = "balAfterTrans")]
     pub bal_after_trans: f32,

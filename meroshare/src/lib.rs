@@ -256,7 +256,7 @@ impl Meroshare {
                     "Not Applied".to_string()
                 }
             }
-            Err(_) => "Failed to Fetch".to_string(),
+            Err(e) => e,
         }
     }
 
@@ -310,7 +310,7 @@ impl Meroshare {
                 let url = PORTFOLIO_URL.to_string() + "myTransaction";
                 let body = json!({
                     "boid":user_details.demat,
-                    "clientCode":user.dp,
+                    "clientCode":user.dpcode,
                     "page":1,
                     "requestTypeScript":false,
                     "script":null,
@@ -319,7 +319,8 @@ impl Meroshare {
                 let result = make_request(&url, Method::POST, Some(body), Some(headers)).await;
                 match result {
                     Ok(value) => {
-                        let result: TransactionView = value.json().await.unwrap();
+                        let result: TransactionView =
+                            value.json().await.expect("Something went wrong");
                         Ok(result)
                     }
                     Err(_) => Err("Something went wrong".to_string()),

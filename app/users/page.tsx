@@ -97,13 +97,14 @@ function ManageUsers() {
           <Button
             onClick={() => setShowCheckupModal(true)}
             tooltip="Check for issues in users like dmat expired, password expired"
-            className="bg-pink-100 hover:bg-pink-200"
+            className="bg-pink-100 flex-1 sm:flex-auto hover:bg-pink-200"
           >
             Checkup Users
           </Button>
           <Button
             disabled={loading}
             type="button"
+            className="flex-1 sm:flex-auto"
             onClick={() => {
               setUser({
                 id: "",
@@ -127,12 +128,23 @@ function ManageUsers() {
       {loading || (!firstFetchDone && <SectionLoading />)}
       {users?.map((user, index) => {
         return (
-          <Button key={user.username} className="justify-between">
+          <Button
+            key={user.username}
+            className="flex-col sm:flex-row justify-between"
+          >
             <div className="font-semibold">{user.name}</div>
             <div className="flex gap-2 items-center">
-              <a href={`/users/${user.id}`}>
+              <a href={`/users/${user.id}/transactions`}>
                 <img
-                  title="View User Details"
+                  title="View User Transactions"
+                  height={26}
+                  width={26}
+                  src="/transaction-icon.svg"
+                />
+              </a>
+              <a href={`/users/${user.id}/portfolio`}>
+                <img
+                  title="View User Portfolio"
                   height={26}
                   width={26}
                   src="/eye-icon.svg"

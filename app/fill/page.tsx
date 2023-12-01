@@ -114,7 +114,7 @@ export default function OpenShares() {
                 e.preventDefault();
                 setShowConfirmDialog(true);
               }}
-              className="flex gap-2 items-center w-full mt-4"
+              className="flex flex-col sm:flex-row gap-2 items-center w-full mt-4"
             >
               <input
                 type="number"
@@ -122,7 +122,7 @@ export default function OpenShares() {
                 max={100}
                 required={true}
                 value={applyUnits}
-                className="w-[120px] p-2 rounded-md h-[48px]"
+                className="w-full sm:w-[120px] p-2 rounded-md h-[48px]"
                 onChange={(e) => setApplyUnits(parseInt(e.target.value))}
               />
               <Button

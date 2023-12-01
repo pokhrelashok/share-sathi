@@ -3,7 +3,7 @@ extern crate prettytable;
 use meroshare::user::{User, UserDetails};
 use meroshare::{
     Bank, Capital, Company, CompanyApplication, IPOAppliedResult, IPOResult, Meroshare, Portfolio,
-    Prospectus,
+    Prospectus, TransactionView,
 };
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
@@ -140,5 +140,14 @@ impl Controller {
                 items: vec![],
             },
         }
+    }
+
+    pub async fn get_transactions(&mut self, id: String) -> Result<TransactionView, String> {
+        let users: Vec<User> = self.get_users().unwrap();
+        let user = users
+            .iter()
+            .find(|&user| user.id == id)
+            .expect("Invalid id");
+        return self.meroshare.get_transactions(user).await;
     }
 }

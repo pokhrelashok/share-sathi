@@ -89,3 +89,20 @@ export type UserDetails = {
   details: User;
   banks: Capital[];
 };
+
+export type TransactionView = {
+  totalItems: number;
+  transactionView: Transaction[];
+};
+
+export type Transaction = {
+  balAfterTrans: number;
+  creditQty: string;
+  debitQty: string;
+  historyDesc: string;
+  script: string;
+  scriptDesc: string;
+  tranactionQty: number;
+  transCode: string;
+  transactionDate: string;
+};
