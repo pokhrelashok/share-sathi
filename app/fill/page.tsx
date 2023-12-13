@@ -109,6 +109,12 @@ export default function OpenShares() {
               Share Type:{" "}
               <span className="font-bold">{selectedShare.shareTypeName}</span>
             </div>
+            <div>
+              Last Date:{" "}
+              <span className="font-bold">
+                {selectedShare.maxIssueCloseDateStr.split(" ")[0]}
+              </span>
+            </div>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
