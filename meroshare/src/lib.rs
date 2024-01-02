@@ -335,6 +335,7 @@ impl Meroshare {
         user: &User,
         id: i32,
         units: i32,
+        is_reapply: bool,
     ) -> Result<IPOAppliedResult, Error> {
         match self.get_auth_header(user).await {
             Ok(headers) => {
@@ -343,7 +344,12 @@ impl Meroshare {
                     .await
                     .unwrap();
                 let user_details = self.get_user_details(user).await.unwrap();
-                let url = MERO_SHARE_URL.to_string() + "applicantForm/share/apply/";
+                let url = MERO_SHARE_URL.to_string()
+                    + if is_reapply {
+                        "applicantForm/share/reapply/"
+                    } else {
+                        "applicantForm/share/apply/"
+                    };
                 let body = json!({
                     "accountBranchId":bank_details.account_branch_id,
                     "accountNumber":bank_details.account_number,
@@ -358,10 +364,13 @@ impl Meroshare {
                 });
                 let result = make_request(&url, Method::POST, Some(body), Some(headers)).await;
                 match result {
-                    Ok(value) => {
-                        let result: IPOAppliedResult = value.json().await?;
-                        Ok(result)
-                    }
+                    Ok(value) => match value.json::<IPOAppliedResult>().await {
+                        Ok(result) => Ok(result),
+                        Err(_) => Ok(IPOAppliedResult {
+                            message: String::from("Something went wrong"),
+                            status: String::from("APPLICATION_FAILED"),
+                        }),
+                    },
                     Err(_) => {
                         let result: IPOAppliedResult = IPOAppliedResult {
                             message: String::from("Something went wrong"),
@@ -372,6 +381,7 @@ impl Meroshare {
                 }
             }
             Err(e) => {
+                println!("{:?}", e);
                 let result: IPOAppliedResult = IPOAppliedResult {
                     message: String::from("Something went wrong"),
                     status: e,

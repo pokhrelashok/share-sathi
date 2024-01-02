@@ -31,12 +31,15 @@ async fn get_company_prospectus(id: i32) -> Result<Prospectus, String> {
     return Ok(prospectus.unwrap());
 }
 #[tauri::command]
-async fn apply_share(id: i32, user: User, units: i32) -> IPOAppliedResult {
+async fn apply_share(id: i32, user: User, units: i32, is_reapply: bool) -> IPOAppliedResult {
     let controller = CONTROLLER.clone();
     let mut controller_lock = controller.lock().await;
-    let prospectus = controller_lock.apply_share(id, user, units).await;
+    let prospectus = controller_lock
+        .apply_share(id, user, units, is_reapply)
+        .await;
     return prospectus;
 }
+
 #[tauri::command]
 async fn get_users() -> Vec<User> {
     let controller = controller::Controller::new();

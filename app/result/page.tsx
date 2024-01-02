@@ -1,10 +1,22 @@
 "use client";
 import useInvoke from "@/hooks/useInvoke";
 import Wrapper from "../_components/Wrapper";
-import { CompanyApplication, IpoResult, User } from "../../types";
+import {
+  CompanyApplication,
+  IpoAppliedResult,
+  IpoResult,
+  User,
+} from "../../types";
 import SectionLoading from "../_components/SectionLoading";
 import Button from "../_components/Button";
-import { Fragment, useEffect, useState } from "react";
+import {
+  Fragment,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import LoadingSpinner from "../_components/LoadingSpinner";
 import Retry from "../_components/Retry";
@@ -64,6 +76,10 @@ function ViewResultDialog({
     "get_share_results",
     []
   );
+  const [applyUnits, setApplyUnits] = useState(10);
+  const [reapplyingFor, setReapplyingFor] = useState<User | null>(null);
+  const { handle: reapply, loading: isApplying } =
+    useInvoke<IpoAppliedResult>("apply_share");
 
   useEffect(() => {
     if (!share || users.length === 0) return;
@@ -79,6 +95,70 @@ function ViewResultDialog({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [share]);
+
+  useEffect(() => {
+    if (reapplyingFor && reapplyingFor.id) {
+      reapply({
+        id: share.companyShareId,
+        user: reapplyingFor,
+        units: applyUnits,
+        isReapply: true,
+      }).then(() => {
+        setResult((old) => ({
+          ...old,
+          [reapplyingFor.id as string]: "Reapplied",
+        }));
+        setReapplyingFor(null);
+      });
+    }
+  }, [applyUnits, reapply, reapplyingFor, result, share.companyShareId]);
+
+  const getUserResultComponent = useCallback(
+    (user: User) => {
+      const id = user.id || -1;
+      if (!(id in result)) {
+        return <LoadingSpinner className="h-3 w-3" />;
+      }
+      if (result[id] === "Rejected") {
+        return (
+          <div className="flex items-center justify-between gap-2">
+            <input
+              type="number"
+              min={10}
+              max={100}
+              required={true}
+              value={applyUnits}
+              className="w-[80px] p-2 rounded-md h-[48px]"
+              onChange={(e) => setApplyUnits(parseInt(e.target.value))}
+            />
+            <Button
+              loading={isApplying && reapplyingFor?.id === user.id}
+              onClick={() => {
+                setReapplyingFor(user);
+              }}
+            >
+              Reapply
+            </Button>
+          </div>
+        );
+      }
+      return result[id];
+    },
+    [result, isApplying, reapplyingFor?.id, applyUnits]
+  );
+
+  function getStatusClass(id: string) {
+    const status = result[id];
+    if (["Alloted", "Verified"].includes(status)) {
+      return "bg-green-100 hover:bg-green-200";
+    } else if (["Unverified", "Not Applied"].includes(status))
+      return "bg-orange-100 hover:bg-orange-200";
+    else if (["Rejected", "Not Alloted", "Not Filled"].includes(status)) {
+      return "bg-red-100 hover:bg-red-200";
+    } else {
+      return "";
+    }
+  }
 
   return (
     <Transition appear show={true} as={Fragment}>
@@ -142,24 +222,12 @@ function ViewResultDialog({
                     return (
                       <Button
                         key={user.id}
-                        className={`flex justify-between ${
-                          result[user.id] === "Alloted"
-                            ? "bg-green-100 hover:bg-green-200"
-                            : [
-                                "Rejected",
-                                "Not Alloted",
-                                "Not Filled",
-                              ].includes(result[user.id])
-                            ? "bg-red-100 hover:bg-red-200"
-                            : ""
-                        }`}
+                        className={`flex justify-between cursor-default ${getStatusClass(
+                          user.id
+                        )}`}
                       >
                         <div>{user.name}</div>
-                        <div>
-                          {result[user.id] || (
-                            <LoadingSpinner className="h-3 w-3" />
-                          )}
-                        </div>
+                        <div>{getUserResultComponent(user)}</div>
                       </Button>
                     );
                   })}

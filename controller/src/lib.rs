@@ -89,11 +89,21 @@ impl Controller {
         }
     }
 
-    pub async fn apply_share(&mut self, id: i32, user: User, units: i32) -> IPOAppliedResult {
+    pub async fn apply_share(
+        &mut self,
+        id: i32,
+        user: User,
+        units: i32,
+        is_reapply: bool,
+    ) -> IPOAppliedResult {
         // let users: Vec<User> = self.get_users().unwrap();
         // let mut results: Vec<IPOAppliedResult> = vec![];
         // for user in users.iter() {
-        let result = self.meroshare.apply_share(&user, id, units).await.unwrap();
+        let result = self
+            .meroshare
+            .apply_share(&user, id, units, is_reapply)
+            .await
+            .unwrap();
         return result;
         // }
         // return results;

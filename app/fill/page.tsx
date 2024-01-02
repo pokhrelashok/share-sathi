@@ -47,6 +47,7 @@ export default function OpenShares() {
         id: company.companyShareId,
         user: user,
         units: applyUnits,
+        isReapply: false,
       })
         .then((result) => {
           setReport((old) => ({ ...old, [user.id as string]: result.status }));
@@ -91,6 +92,7 @@ export default function OpenShares() {
           </Button>
         );
       })}
+      {shares.length == 0 && <div className="px-9">No open shares!</div>}
       <div className="relative">
         {selectedShare && !error && (
           <div className="mt-4 relative bg-gray-100 rounded-lg p-2 flex flex-col justify-center items-center">
@@ -160,6 +162,7 @@ export default function OpenShares() {
       </div>
       {applyStarted && (
         <FillProgressDialog
+          units={applyUnits}
           report={report}
           users={users}
           share={selectedShare}
@@ -199,11 +202,13 @@ function FillProgressDialog({
   share,
   onClose,
   report,
+  units,
 }: {
   share: Prospectus;
   users: User[];
   onClose: () => any;
   report: Record<string, string>;
+  units: number;
 }) {
   return (
     <Transition appear show={true} as={Fragment}>
@@ -239,7 +244,7 @@ function FillProgressDialog({
                   <div>{share.companyName}</div>
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex gap-2 text-blue-400">
-                      {share.minUnit} at Rs {formatPrice(share.sharePerUnit)}
+                      {units} at Rs {formatPrice(share.sharePerUnit)}
                     </div>
                     <div className="text-green-400">
                       {Object.keys(report).length}/{users.length}
@@ -249,7 +254,14 @@ function FillProgressDialog({
                 <div className="flex flex-col gap-1 overflow-y-auto max-h-[80vh]">
                   {users.map((user) => {
                     return (
-                      <Button key={user.id} className="flex justify-between">
+                      <Button
+                        key={user.id}
+                        className={`flex justify-between ${
+                          report[user.id || -1]?.toLowerCase() === "created"
+                            ? "bg-green-100 hover:bg-green-200"
+                            : "bg-red-100 hover:bg-red-200"
+                        }`}
+                      >
                         <div>{user.name}</div>
                         <div>
                           {report[user.id || "-1"] || (
