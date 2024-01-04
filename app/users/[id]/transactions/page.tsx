@@ -50,7 +50,10 @@ function UserTransactionsPage() {
                   <td className="py-2 px-4">
                     {item.transactionDate.split("T")[0]}{" "}
                   </td>
-                  <td className="py-2 px-4"> {item.script} </td>
+                  <td className="py-2 px-4" title={item.scriptDesc}>
+                    {" "}
+                    {item.script}{" "}
+                  </td>
                   <td className="py-2 px-4">
                     {item.creditQty != "-" ? item.creditQty : item.debitQty}
                   </td>

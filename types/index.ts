@@ -83,6 +83,7 @@ export type PortfolioItem = {
   valueAsOfPreviousClosingPrice: string;
   valueOfLastTransPrice: string;
   valueOfPrevClosingPrice: string;
+  scriptDesc: string;
 };
 
 export type UserDetails = {
