@@ -97,6 +97,13 @@ async fn get_user_transactions(id: String) -> Result<TransactionView, String> {
     let res = controller_lock.get_transactions(id).await;
     return res;
 }
+#[tauri::command]
+async fn change_password(id: String, password: String) -> Result<String, String> {
+    let controller = CONTROLLER.clone();
+    let mut controller_lock = controller.lock().await;
+    let res = controller_lock.change_password(id, password).await;
+    return res;
+}
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -110,7 +117,8 @@ fn main() {
             get_application_report,
             get_share_results,
             get_user_portfolio,
-            get_user_transactions
+            get_user_transactions,
+            change_password
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

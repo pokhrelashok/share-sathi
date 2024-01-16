@@ -2,10 +2,11 @@ extern crate prettytable;
 
 use meroshare::user::{User, UserDetails};
 use meroshare::{
-    Bank, Capital, Company, CompanyApplication, IPOAppliedResult, IPOResult, Meroshare, Portfolio,
-    Prospectus, TransactionView,
+    Bank, Capital, Company, CompanyApplication, IPOAppliedResult, Meroshare, Portfolio, Prospectus,
+    TransactionView,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::fs::{File, OpenOptions};
 use std::io::Read;
 use std::io::Write;
@@ -45,7 +46,7 @@ impl Controller {
             .truncate(true)
             .create(true)
             .open("users.json")
-            .expect("Coould not open file");
+            .expect("Could not open file");
         file.set_len(0).unwrap();
         file.write_all(data.as_bytes()).unwrap();
         true
@@ -159,5 +160,25 @@ impl Controller {
             .find(|&user| user.id == id)
             .expect("Invalid id");
         return self.meroshare.get_transactions(user).await;
+    }
+
+    pub async fn change_password(
+        &mut self,
+        id: String,
+        password: String,
+    ) -> Result<String, String> {
+        let mut users: Vec<User> = self.get_users().unwrap();
+        if let Some(index) = users.iter().position(|user| user.id == id) {
+            let user = &mut users[index];
+            let res = self.meroshare.change_password(user, &password).await;
+            if res.is_ok() {
+                user.password = password.clone();
+                users[index] = user.clone();
+                self.update_user(serde_json::to_string(&users).expect("Something went wrong"));
+            }
+            return res;
+        }
+
+        Err("User not found".to_string())
     }
 }

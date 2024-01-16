@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/alt-text */
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import useInvoke from "@/hooks/useInvoke";
 import { Fragment, useEffect, useMemo, useState } from "react";
@@ -412,6 +414,8 @@ function CheckupDialog({
 }) {
   const [result, setResult] = useState<Record<string, string>>({});
   const { handle: getUserDetails } = useInvoke<UserDetails>("get_user_details");
+  const { handle: changePassword } = useInvoke<String>("change_password");
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     users.forEach((user) => {
@@ -428,6 +432,31 @@ function CheckupDialog({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const canChangePassword = useMemo(() => {
+    return Object.values(result).some((v) => v.includes("Change Password"));
+  }, [result]);
+
+  const onChangePassword = () => {
+    for (const key in result) {
+      if (Object.prototype.hasOwnProperty.call(result, key)) {
+        if (result[key].includes("Change Password")) {
+          changePassword({ id: key, password })
+            .then((result) => {
+              console.log(result);
+              setResult((old) => ({
+                ...old,
+                [key as string]: "Password Updated",
+              }));
+            })
+            .catch((e: string) => {
+              console.log(e);
+              setResult((old) => ({ ...old, [key as string]: e }));
+            });
+        }
+      }
+    }
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -458,17 +487,32 @@ function CheckupDialog({
               <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title
                   as="h3"
-                  className="text-lg font-bold leading-6 text-gray-600 justify-between flex items-center mb-4"
+                  className="text-lg font-bold leading-6 text-gray-600 mb-4"
                 >
-                  <div>Checking Users for issues</div>
-                  <div className="text-green-500 shrink-0 text-sm">
-                    {
-                      Object.values(result).filter(
-                        (r) => r === "No issues found"
-                      ).length
-                    }
-                    /{users.length}
+                  <div className="justify-between flex items-center ">
+                    <div>Checking Users for issues</div>
+                    <div className="text-green-500 shrink-0 text-sm">
+                      {
+                        Object.values(result).filter(
+                          (r) => r === "No issues found"
+                        ).length
+                      }
+                      /{users.length}
+                    </div>
                   </div>
+                  {canChangePassword && (
+                    <div className="flex mt-2 justify-end gap-3">
+                      <input
+                        type={"text"}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required={true}
+                        value={password}
+                        placeholder="Enter new password"
+                        className="outline-none border-2 flex-1 border-gray-300 focus:border-gray-400 text-sm font-normal ease-out transition-all mt-[2px] rounded-lg p-1 px-2 text-gray-600"
+                      />
+                      <Button onClick={onChangePassword}>Update</Button>
+                    </div>
+                  )}
                 </Dialog.Title>
                 <div className="flex flex-col gap-1 overflow-y-auto max-h-[80vh]">
                   {users.map((user) => {
@@ -478,7 +522,9 @@ function CheckupDialog({
                         key={user.id}
                         className={`flex justify-between ${
                           user.id in result
-                            ? result[user.id] === "No issues found"
+                            ? ["No issues found", "Password Updated"].includes(
+                                result[user.id]
+                              )
                               ? "bg-green-100 hover:bg-green-200"
                               : "bg-red-100 hover:bg-red-200"
                             : ""

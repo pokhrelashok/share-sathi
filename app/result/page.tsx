@@ -149,11 +149,16 @@ function ViewResultDialog({
 
   function getStatusClass(id: string) {
     const status = result[id];
+    if (!status) return "";
     if (["Alloted", "Verified"].includes(status)) {
       return "bg-green-100 hover:bg-green-200";
     } else if (["Unverified", "Not Applied"].includes(status))
       return "bg-orange-100 hover:bg-orange-200";
-    else if (["Rejected", "Not Alloted", "Not Filled"].includes(status)) {
+    else if (
+      ["Rejected", "Not Alloted", "Not Filled", "Please", "Failed"].some((s) =>
+        status.includes(s)
+      )
+    ) {
       return "bg-red-100 hover:bg-red-200";
     } else {
       return "";

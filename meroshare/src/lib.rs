@@ -62,6 +62,7 @@ impl Meroshare {
     pub async fn get_auth_header(
         &mut self,
         user: &User,
+        ignore_password_issues: bool,
     ) -> Result<HashMap<String, String>, String> {
         let mut token = String::from("");
         let mut token_guard = self.tokens.lock().await;
@@ -90,7 +91,10 @@ impl Meroshare {
                         let headers = value.headers().clone();
                         let status: UserStatus = value.json().await.unwrap();
 
-                        if status.password_expired || status.demat_expired || status.account_expired
+                        if !ignore_password_issues
+                            && (status.password_expired
+                                || status.demat_expired
+                                || status.account_expired)
                         {
                             let msg = status.message.clone();
                             return Err(msg);
@@ -131,7 +135,7 @@ impl Meroshare {
 
     pub async fn get_user_banks(&mut self, user: &User) -> Result<Vec<Bank>, String> {
         // let headers = .unwrap();
-        match self.get_auth_header(user).await {
+        match self.get_auth_header(user, false).await {
             Ok(headers) => {
                 let url = MERO_SHARE_URL.to_string() + "bank/";
                 let result = make_request(&url, Method::GET, None, Some(headers)).await;
@@ -148,7 +152,7 @@ impl Meroshare {
     }
 
     pub async fn get_bank_details(&mut self, id: &str, user: &User) -> Result<BankDetails, Error> {
-        let headers = self.get_auth_header(user).await.unwrap();
+        let headers = self.get_auth_header(user, false).await.unwrap();
         let url = MERO_SHARE_URL.to_string() + "bank/" + id;
         let result = make_request(&url, Method::GET, None, Some(headers)).await;
         match result {
@@ -160,7 +164,7 @@ impl Meroshare {
         }
     }
     pub async fn get_user_details(&mut self, user: &User) -> Result<UserDetails, String> {
-        match self.get_auth_header(user).await {
+        match self.get_auth_header(user, false).await {
             Ok(headers) => {
                 let url = MERO_SHARE_URL.to_string() + "ownDetail/";
                 let result = make_request(&url, Method::GET, None, Some(headers)).await;
@@ -179,7 +183,7 @@ impl Meroshare {
     #[allow(dead_code)]
 
     pub async fn get_current_issue(&mut self, user: &User) -> Result<Vec<Company>, String> {
-        match self.get_auth_header(user).await {
+        match self.get_auth_header(user, false).await {
             Ok(headers) => {
                 let url = MERO_SHARE_URL.to_string() + "companyShare/currentIssue/";
                 let body = json!({
@@ -215,7 +219,7 @@ impl Meroshare {
         &mut self,
         user: &User,
     ) -> Result<Vec<CompanyApplication>, String> {
-        match self.get_auth_header(user).await {
+        match self.get_auth_header(user, false).await {
             Ok(headers) => {
                 let url = MERO_SHARE_URL.to_string() + "applicantForm/active/search/";
                 let body = json!({"filterFieldParams":[{"key":"companyShare.companyIssue.companyISIN.script","alias":"Scrip"},{"key":"companyShare.companyIssue.companyISIN.company.name","alias":"Company Name"}],"page":1,"size":200,"searchRoleViewConstants":"VIEW_APPLICANT_FORM_COMPLETE","filterDateParams":[{"key":"appliedDate","condition":"","alias":"","value":""},{"key":"appliedDate","condition":"","alias":"","value":""}]});
@@ -233,7 +237,7 @@ impl Meroshare {
     }
 
     pub async fn get_company_result(&mut self, user: &User, script: &str) -> String {
-        match self.get_auth_header(user).await {
+        match self.get_auth_header(user, false).await {
             Ok(headers) => {
                 let shares = self.get_application_report(user).await.unwrap();
                 let application_search = shares
@@ -265,7 +269,7 @@ impl Meroshare {
         user: &User,
         id: i32,
     ) -> Result<Prospectus, String> {
-        let headers = self.get_auth_header(user).await.unwrap();
+        let headers = self.get_auth_header(user, false).await.unwrap();
         let url = MERO_SHARE_URL.to_string() + "active/" + (id).to_string().as_str();
         let result = make_request(&url, Method::GET, None, Some(headers)).await;
         match result {
@@ -278,7 +282,7 @@ impl Meroshare {
     }
 
     pub async fn get_portfolio(&mut self, user: &User) -> Result<Portfolio, String> {
-        match self.get_auth_header(user).await {
+        match self.get_auth_header(user, false).await {
             Ok(headers) => {
                 let user_details = self.get_user_details(&user).await.unwrap();
                 let url = PORTFOLIO_URL.to_string() + "myPortfolio";
@@ -304,7 +308,7 @@ impl Meroshare {
     }
 
     pub async fn get_transactions(&mut self, user: &User) -> Result<TransactionView, String> {
-        match self.get_auth_header(user).await {
+        match self.get_auth_header(user, false).await {
             Ok(headers) => {
                 let user_details = self.get_user_details(&user).await.unwrap();
                 let url = PORTFOLIO_URL.to_string() + "myTransaction";
@@ -337,7 +341,7 @@ impl Meroshare {
         units: i32,
         is_reapply: bool,
     ) -> Result<IPOAppliedResult, Error> {
-        match self.get_auth_header(user).await {
+        match self.get_auth_header(user, false).await {
             Ok(headers) => {
                 let bank_details = self
                     .get_bank_details(user.bank.as_str(), user)
@@ -388,6 +392,28 @@ impl Meroshare {
                 };
                 Ok(result)
             }
+        }
+    }
+    pub async fn change_password(
+        &mut self,
+        user: &User,
+        password: &String,
+    ) -> Result<String, String> {
+        match self.get_auth_header(user, true).await {
+            Ok(headers) => {
+                let url = MERO_SHARE_URL.to_string() + "changePassword/";
+                let body = json!({
+                    "oldPassword":user.password,
+                    "newPassword":password,
+                    "confirmPassword":password
+                });
+                let result = make_request(&url, Method::POST, Some(body), Some(headers)).await;
+                if let Ok(_) = result {
+                    return Ok("Changed Successfully!".to_string());
+                }
+                return Err("Something went wrong!".to_string());
+            }
+            Err(e) => Err(e.to_string()),
         }
     }
 }
