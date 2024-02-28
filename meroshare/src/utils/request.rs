@@ -12,7 +12,9 @@ pub async fn make_request(
     body: Option<Value>,
     headers: Option<HashMap<String, String>>,
 ) -> Result<Response, Error> {
-    let client = Client::new();
+    let client = Client::builder()
+        .danger_accept_invalid_certs(true)
+        .build()?;
     let mut request_builder = client.request(method, url);
     let mut headers_map = HeaderMap::new();
     headers_map.insert(
