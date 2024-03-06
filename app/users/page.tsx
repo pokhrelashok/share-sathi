@@ -10,6 +10,7 @@ import Wrapper from "../_components/Wrapper";
 import Button from "../_components/Button";
 import { Capital, User, UserDetails } from "../../types";
 import LoadingSpinner from "../_components/LoadingSpinner";
+import { useDebounce } from "@uidotdev/usehooks";
 
 const HIDDEN_FIELDS = ["id", "name", "bank", "dpcode"];
 
@@ -27,6 +28,13 @@ function ManageUsers() {
   const [showCheckupModal, setShowCheckupModal] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
+
+  const searchedUsers = useMemo(() => {
+    const s = debouncedSearch.toLowerCase();
+    return users.filter((u) => u.name.toLowerCase().includes(s));
+  }, [users, debouncedSearch]);
 
   const currentUserIndex = useMemo(() => {
     if (!user || !users) return null;
@@ -125,10 +133,21 @@ function ManageUsers() {
           </Button>
         </div>
       }
+      subtitle={
+        <div className="bg-white mb-2">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            type="text"
+            placeholder="Search"
+            className="border border-gray-300 bg-white rounded-lg w-full h-9 px-4"
+          />
+        </div>
+      }
       title="Manage Users"
     >
       {loading || (!firstFetchDone && <SectionLoading />)}
-      {users?.map((user, index) => {
+      {searchedUsers?.map((user, index) => {
         return (
           <Button
             key={user.username}
