@@ -26,6 +26,21 @@ function UserPortfolioPage() {
     return data.totalValueOfLastTransPrice > data.totalValueOfPrevClosingPrice;
   }, [data]);
 
+  const hightestGainOrLoss = useMemo(() => {
+    if (!data?.meroShareMyPortfolio) return 0;
+    const d = data.meroShareMyPortfolio
+      .map((d, i) => ({
+        index: i,
+        value: Math.abs(
+          parseFloat(d.valueOfPrevClosingPrice) -
+            parseFloat(d.valueAsOfLastTransactionPrice)
+        ),
+      }))
+      .sort((a, b) => (a.value > b.value ? -1 : 1));
+
+    return d[0].index;
+  }, [data]);
+
   return (
     <Wrapper
       className="!py-0"
@@ -46,11 +61,9 @@ function UserPortfolioPage() {
               <p>
                 Rs{" "}
                 {formatPrice(
-                  Math.floor(
-                    Math.abs(
-                      data.totalValueOfLastTransPrice -
-                        data.totalValueOfPrevClosingPrice
-                    )
+                  Math.abs(
+                    data.totalValueOfLastTransPrice -
+                      data.totalValueOfPrevClosingPrice
                   )
                 )}
               </p>
@@ -90,10 +103,8 @@ function UserPortfolioPage() {
                     <td className="py-2 px-4">
                       Rs{" "}
                       {formatPrice(
-                        Math.floor(
-                          parseFloat(item.valueAsOfLastTransactionPrice) /
-                            item.currentBalance
-                        )
+                        parseFloat(item.valueAsOfLastTransactionPrice) /
+                          item.currentBalance
                       )}
                     </td>
                     <td className="py-2 px-4">
@@ -102,11 +113,9 @@ function UserPortfolioPage() {
                     <td className="py-2 px-4">
                       Rs{" "}
                       {formatPrice(
-                        Math.floor(
-                          Math.abs(
-                            parseFloat(item.valueOfPrevClosingPrice) -
-                              parseFloat(item.valueAsOfLastTransactionPrice)
-                          )
+                        Math.abs(
+                          parseFloat(item.valueOfPrevClosingPrice) -
+                            parseFloat(item.valueAsOfLastTransactionPrice)
                         )
                       )}
                     </td>

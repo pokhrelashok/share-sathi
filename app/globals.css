@@ -5,3 +5,26 @@
 body {
   @apply text-slate-800;
 }
+
+.rainbow-text {
+  font-weight: 600;
+  background: linear-gradient(to right, #6666ff, #ff3399, red);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rainbow_animation 5s ease-in-out infinite;
+  background-size: 400% 100%;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes rainbow_animation {
+
+  0%,
+  100% {
+    background-position: 0 0;
+  }
+
+  50% {
+    background-position: 100% 0;
+  }
+}
