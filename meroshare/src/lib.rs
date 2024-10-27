@@ -87,7 +87,6 @@ impl Meroshare {
                                 format!("Failed to login for user {}", &user.name).to_string()
                             );
                         }
-                        // Extract headers
                         let headers = value.headers().clone();
                         let status: UserStatus = value.json().await.unwrap();
 
@@ -185,7 +184,7 @@ impl Meroshare {
     pub async fn get_current_issue(&mut self, user: &User) -> Result<Vec<Company>, String> {
         match self.get_auth_header(user, false).await {
             Ok(headers) => {
-                let url = MERO_SHARE_URL.to_string() + "companyShare/currentIssue/";
+                let url = MERO_SHARE_URL.to_string() + "companyShare/currentIssue";
                 let body = json!({
                     "filterFieldParams": [
                         {"key": "companyIssue.companyISIN.script", "alias":"Scrip"},
@@ -203,13 +202,14 @@ impl Meroshare {
                 let result = make_request(&url, Method::POST, Some(body), Some(headers)).await;
                 match result {
                     Ok(value) => {
-                        let response: ApiResponseCurrentIssue = value.json().await.unwrap();
+                        let response: ApiResponseCurrentIssue =
+                            value.json().await.expect("Something went wrong");
                         Ok(response.object)
                     }
                     Err(_) => Err("Something went wrong".to_string()),
                 }
             }
-            Err(e) => return Err(e),
+            Err(e) => Err(e),
         }
     }
 
@@ -285,7 +285,7 @@ impl Meroshare {
         match self.get_auth_header(user, false).await {
             Ok(headers) => {
                 let user_details = self.get_user_details(&user).await.unwrap();
-                let url = PORTFOLIO_URL.to_string() + "myPortfolio";
+                let url = PORTFOLIO_URL.to_string() + "myPortfolio/";
                 let body = json!({
                     "clientCode":user.dpcode,
                     "demat":[user_details.demat],
@@ -311,7 +311,7 @@ impl Meroshare {
         match self.get_auth_header(user, false).await {
             Ok(headers) => {
                 let user_details = self.get_user_details(&user).await.unwrap();
-                let url = PORTFOLIO_URL.to_string() + "myTransaction";
+                let url = PORTFOLIO_URL.to_string() + "myTransaction/";
                 let body = json!({
                     "boid":user_details.demat,
                     "clientCode":user.dpcode,

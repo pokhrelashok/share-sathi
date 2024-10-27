@@ -12,9 +12,8 @@ pub async fn make_request(
     body: Option<Value>,
     headers: Option<HashMap<String, String>>,
 ) -> Result<Response, Error> {
-    let client = Client::builder()
-        .danger_accept_invalid_certs(true)
-        .build()?;
+    let client = Client::builder().build()?;
+    println!("{:?}", method);
     let mut request_builder = client.request(method, url);
     let mut headers_map = HeaderMap::new();
     headers_map.insert(
@@ -23,7 +22,7 @@ pub async fn make_request(
     );
     headers_map.insert(
         "Accept-Encoding",
-        HeaderValue::from_static("gzip, deflate, br"),
+        HeaderValue::from_static("gzip, deflate, br, zstd"),
     );
     headers_map.insert(
         "Accept-Language",
@@ -40,6 +39,7 @@ pub async fn make_request(
         HeaderValue::from_static("https://meroshare.cdsc.com.np/"),
     );
     headers_map.insert("Sec-Fetch-Dest", HeaderValue::from_static("empty"));
+    headers_map.insert("Sec-GPC", HeaderValue::from_static("1"));
     headers_map.insert("Sec-Fetch-Mode", HeaderValue::from_static("cors"));
     headers_map.insert("Sec-Fetch-Site", HeaderValue::from_static("same-site"));
     headers_map.insert("Content-Type", HeaderValue::from_static("application/json"));
@@ -55,7 +55,9 @@ pub async fn make_request(
             );
         }
     }
-
+    println!("{:?}", headers_map);
+    println!("{:?}", url);
+    println!("{:?}", body);
     request_builder = request_builder.headers(headers_map);
 
     if let Some(body) = body {
