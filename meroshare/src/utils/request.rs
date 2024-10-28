@@ -13,7 +13,7 @@ pub async fn make_request(
     headers: Option<HashMap<String, String>>,
 ) -> Result<Response, Error> {
     let client = Client::builder().build()?;
-    println!("{:?}", method);
+    // println!("{:?}", method);
     let mut request_builder = client.request(method, url);
     let mut headers_map = HeaderMap::new();
     headers_map.insert(
@@ -55,9 +55,9 @@ pub async fn make_request(
             );
         }
     }
-    println!("{:?}", headers_map);
-    println!("{:?}", url);
-    println!("{:?}", body);
+    // println!("{:?}", headers_map);
+    // println!("{:?}", url);
+    // println!("{:?}", body);
     request_builder = request_builder.headers(headers_map);
 
     if let Some(body) = body {

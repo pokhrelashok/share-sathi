@@ -337,7 +337,7 @@ function UpdateUserDialog({
                               </option>
                               {capitals
                                 .sort((a, b) =>
-                                  parseInt(a.code) > parseInt(b.code) ? 1 : -1
+                                  parseInt(a.code) > parseInt(b.code) ? 1 : -1,
                                 )
                                 .map((capital) => {
                                   return (
@@ -513,7 +513,7 @@ function CheckupDialog({
                     <div className="text-green-500 shrink-0 text-sm">
                       {
                         Object.values(result).filter(
-                          (r) => r === "No issues found"
+                          (r) => r === "No issues found",
                         ).length
                       }
                       /{users.length}
@@ -542,14 +542,14 @@ function CheckupDialog({
                         className={`flex justify-between ${
                           user.id in result
                             ? ["No issues found", "Password Updated"].includes(
-                                result[user.id]
+                                result[user.id],
                               )
                               ? "bg-green-100 hover:bg-green-200"
                               : "bg-red-100 hover:bg-red-200"
                             : ""
                         }`}
                       >
-                        <div>{user.name}</div>
+                        <div className="text-left">{user.name}</div>
                         <div>
                           {result[user.id] || (
                             <LoadingSpinner className="h-3 w-3" />
