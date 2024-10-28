@@ -12,10 +12,8 @@ pub struct BankDetails {
     pub account_branch_id: u32,
     #[serde(rename = "accountNumber")]
     pub account_number: String,
-    #[serde(rename = "bankId")]
-    pub bank_id: u32,
-    #[serde(rename = "branchID")]
-    pub branch_id: u32,
+    #[serde(rename = "accountTypeId")]
+    pub account_type_id: u32,
     #[serde(rename = "branchName")]
     pub branch_name: String,
     pub id: u32,
