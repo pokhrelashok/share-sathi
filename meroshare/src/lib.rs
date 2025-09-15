@@ -49,13 +49,11 @@ const PORTFOLIO_URL: &str = "https://webbackend.cdsc.com.np/api/meroShareView/";
 const MERO_SHARE_URL: &str = "https://webbackend.cdsc.com.np/api/meroShare/";
 
 pub struct Meroshare {
-    capitals: Mutex<Vec<Capital>>,
     tokens: Mutex<HashMap<String, String>>,
 }
 impl Meroshare {
     pub fn new() -> Meroshare {
         Meroshare {
-            capitals: Mutex::new(vec![]),
             tokens: Mutex::new(HashMap::new()),
         }
     }
@@ -156,8 +154,9 @@ impl Meroshare {
         let result = make_request(&url, Method::GET, None, Some(headers)).await;
         match result {
             Ok(value) => {
-                let banks: BankDetails = value.json().await?;
-                Ok(banks)
+                let banks: Vec<BankDetails> = value.json().await?;
+                let bank = banks.into_iter().nth(0).unwrap();
+                Ok(bank)
             }
             Err(error) => Err(error),
         }
@@ -350,9 +349,9 @@ impl Meroshare {
                 let user_details = self.get_user_details(user).await.unwrap();
                 let url = MERO_SHARE_URL.to_string()
                     + if is_reapply {
-                        "applicantForm/share/reapply/"
+                        "applicantForm/share/reapply"
                     } else {
-                        "applicantForm/share/apply/"
+                        "applicantForm/share/apply"
                     };
                 let body = json!({
                     "accountBranchId":bank_details.account_branch_id,
@@ -365,7 +364,9 @@ impl Meroshare {
                     "customerId":bank_details.id,
                     "demat":user_details.demat,
                     "transactionPIN":user.pin,
+                    "accountTypeId":bank_details.account_type_id,
                 });
+
                 let result = make_request(&url, Method::POST, Some(body), Some(headers)).await;
                 match result {
                     Ok(value) => match value.json::<IPOAppliedResult>().await {
