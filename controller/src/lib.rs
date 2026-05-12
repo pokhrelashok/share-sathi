@@ -34,8 +34,10 @@ impl Controller {
                 let mut contents = String::new();
                 file.read_to_string(&mut contents)
                     .expect("Failed to read file");
-                let users: Vec<User> = serde_json::from_str(&contents).expect("Invalid JSON");
-                Ok(users)
+                match serde_json::from_str::<Vec<User>>(&contents) {
+                    Ok(users) => Ok(users),
+                    Err(e) => Err(format!("Invalid users.json format: {}", e)),
+                }
             }
             Err(_) => Err("Couldn't fetch data".to_string()),
         }

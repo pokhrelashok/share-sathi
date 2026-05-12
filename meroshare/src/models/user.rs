@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct User {
     pub id: String,
+    #[serde(default = "default_dp")]
     pub dp: String,
     pub username: String,
     pub password: String,
@@ -14,6 +15,10 @@ pub struct User {
     pub dpcode: String,
     // #[serde(default = "default_tag")]
     // pub tags: Vec<String>,
+}
+
+fn default_dp() -> String {
+    "".to_string()
 }
 
 fn default_dpcode() -> String {
